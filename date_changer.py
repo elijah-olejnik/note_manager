@@ -1,5 +1,4 @@
 import time as t # This library is needed mostly for user input control, but we can us it for the date storing
-from time import strftime
 
 date_fmt = "%d-%m-%Y" # We restrict the date input to this format
 
@@ -53,5 +52,5 @@ print("\nUser name:", username)
 print("\nTitle:", title)
 print("\nContent:\n", content, "\n")
 print("Status:", status)
-print("Created:", strftime("%a, %d %b", created_date)) # Converting without a year from time variable
-print("Expired:", strftime("%a, %d %b", issue_date)) # Converting without a year from time variable
+print("Created:", t.strftime("%a, %d %b", created_date)) # Converting without a year from time variable
+print("Expired:", t.strftime("%a, %d %b", issue_date)) # Converting without a year from time variable
