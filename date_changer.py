@@ -36,8 +36,13 @@ class Note:
         prompt_list = ['Enter your name', 'Enter the note title', 'Enter the note text', 'Enter the note state',
                        'Enter the date of note creation in "dd-mm-yyyy" format',
                        'Enter the note expiration date in "dd-mm-yyyy" format']
-        input_list = [self.handle_user_input(prompt, i > 3, i > 4) for i, prompt in enumerate(prompt_list)]
-        self.username, self.title, self.content, self.status = input_list[:4]
+        input_list = []
+        for i, prompt in enumerate(prompt_list):
+            if i < 4:
+                input_list.append(self.handle_user_input(prompt, i > 3, i > 4))
+            else:
+                self.handle_user_input(prompt, i > 3, i > 4)
+        self.username, self.title, self.content, self.status = input_list
 
     def show_to_console(self):
         print("\nYour note is saved. You've entered:\n")
