@@ -1,4 +1,5 @@
 import time as t # This library is needed mostly for user input control, but we can us it for the date storing
+from time import strftime
 
 date_fmt = "%d-%m-%Y" # We restrict the date input to this format
 
@@ -14,7 +15,7 @@ temp_str = None # A temporary variable to store the user input
 for i in range(6):
     # An eternal loop for the input mistakes handling inside
     while True:
-        temp_str = input("\n" + prompt_list[i] + ": ") # Getting the user input
+        temp_str = input(f"\n" + prompt_list[i] + ": ") # Getting the user input
         # Try-except block is added mostly for the ValueError exceptions caught from the time.strptime() function, but
         # also we can use it for the null input control
         try:
@@ -52,5 +53,5 @@ print("\nUser name:", username)
 print("\nTitle:", title)
 print("\nContent:\n", content, "\n")
 print("Status:", status)
-print("Created:", created_date.tm_year) # Converting only a year from time variable
-print("Expired:", issue_date.tm_year) # Converting only a year from time variable
+print("Created:", strftime("%a, %d %b", created_date)) # Converting without a year from time variable
+print("Expired:", strftime("%a, %d %b", issue_date)) # Converting without a year from time variable
