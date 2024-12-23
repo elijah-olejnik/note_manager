@@ -23,9 +23,9 @@ class Note:
                             if date < self.created_date:
                                 raise ValueError("The expiration date can't be earlier than the creation date!")
                             self.issue_date = date
-                            return date
+                            break
                         self.created_date = date
-                        return date
+                        break
                     return user_input
                 else:
                     raise ValueError("You've entered nothing")
