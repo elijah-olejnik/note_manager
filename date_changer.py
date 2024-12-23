@@ -11,7 +11,6 @@ class Note:
         self.status = None
         self.created_date = None
         self.issue_date = None
-        self.tmp_date = None
 
     def handle_user_input(self, prompt, is_date=False, is_issue_date=False):
         while True:
@@ -21,9 +20,11 @@ class Note:
                     if is_date:
                         date = datetime.strptime(user_input, self.in_date_fmt)
                         if is_issue_date:
-                            if date < self.tmp_date:
+                            if date < self.created_date:
                                 raise ValueError("The expiration date can't be earlier than the creation date!")
-                        self.tmp_date = date
+                            self.issue_date = date
+                            return date
+                        self.created_date = date
                         return date
                     return user_input
                 else:
@@ -36,7 +37,7 @@ class Note:
                        'Enter the date of note creation in "dd-mm-yyyy" format',
                        'Enter the note expiration date in "dd-mm-yyyy" format']
         input_list = [self.handle_user_input(prompt, i > 3, i > 4) for i, prompt in enumerate(prompt_list)]
-        self.username, self.title, self.content, self.status, self.created_date, self.issue_date = input_list
+        self.username, self.title, self.content, self.status = input_list[:4]
 
     def show_to_console(self):
         print("\nYour note is saved. You've entered:\n")
