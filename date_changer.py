@@ -14,7 +14,7 @@ temp_str = None # A temporary variable to store the user input
 for i in range(6):
     # An eternal loop for the input mistakes handling inside
     while True:
-        temp_str = input(f"\n" + prompt_list[i] + ": ") # Getting the user input
+        temp_str = input("\n" + prompt_list[i] + ": ") # Getting the user input
         # Try-except block is added mostly for the ValueError exceptions caught from the time.strptime() function, but
         # also we can use it for the null input control
         try:
@@ -49,8 +49,8 @@ del input_list, date_fmt # Not needed anymore
 # Show saved fields to the console output
 print("\nYour note is saved. You've entered: ")
 print("\nUser name:", username)
-print("\nTitle:", title)
-print("\nContent:\n", content, "\n")
+print("Title:", title)
+print("\nContent:\n\n", content, "\n")
 print("Status:", status)
 print("Created:", t.strftime("%a, %d %b", created_date)) # Converting without a year from time variable
 print("Expired:", t.strftime("%a, %d %b", issue_date)) # Converting without a year from time variable
