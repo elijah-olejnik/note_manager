@@ -21,7 +21,8 @@ class Note:
                         date = datetime.strptime(user_input, self.in_date_fmt)
                         if is_issue_date:
                             if date < self.created_date:
-                                raise ValueError("The expiration date can't be earlier than the creation date!")
+                                raise ValueError("The expiration date can't be "
+                                                 "earlier than the creation date!")
                             self.issue_date = date
                             break
                         self.created_date = date
@@ -33,7 +34,8 @@ class Note:
                 print("\nThe input is incorrect: ", e)
 
     def fill_with_console(self):
-        prompt_list = ['Enter your name', 'Enter the note title', 'Enter the note text', 'Enter the note state',
+        prompt_list = ['Enter your name', 'Enter the note title',
+                       'Enter the note text', 'Enter the note state',
                        'Enter the date of note creation in "dd-mm-yyyy" format',
                        'Enter the note expiration date in "dd-mm-yyyy" format']
         input_list = []
