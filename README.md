@@ -24,7 +24,7 @@
     This script adds some performance and code optimisations and 
     the list for saving 3 titles
 ### add_list.py
-    In process
+    In process...
 ### final
     The script still asks user to input the values for the note but saves 
     the values to the dictionary and then prints it out formatted to the console
