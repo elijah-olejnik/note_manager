@@ -11,7 +11,7 @@ class Note:
 
     def __init__(self):
         self.username = None
-        self.titles = [None, None, None]
+        self.titles = ["", "", ""]
         self.content = None
         self.status = None
         self.created_date = None
