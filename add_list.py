@@ -11,7 +11,7 @@ class Note:
 
     def __init__(self):
         self.username = None
-        self.titles = ["", "", ""]
+        self.titles = ["", "", ""] # TODO: I need to refactor my code for multiple title input
         self.content = None
         self.status = None
         self.created_date = None
