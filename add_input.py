@@ -66,8 +66,6 @@ class Note:
 
     def show_to_console(self):
         print("\nYour note is saved. You've entered:\n")
-        # formatted_titles = "\n".join("Title " + str(i + 1) + ": " + str(t) for i, t in enumerate(self.titles))
-        # print(formatted_titles)
         print(self.__str__())
 
     def __str__(self):
