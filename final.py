@@ -4,7 +4,7 @@ from enum import Enum
 class Status(Enum):
     ACTIVE = 0
     COMPLETED = 1
-#TODO: refactor the code to merge with add_list.py changes
+#TODO: refactor the code to merge with all changes in the add_list.py file
 class Note:
     in_date_fmt = "%d-%m-%Y"
     out_date_fmt = "%A %d %B"
