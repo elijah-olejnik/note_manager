@@ -4,10 +4,12 @@ from enum import Enum
 class Status(Enum):
     ACTIVE = 0
     COMPLETED = 1
+    TERMLESS = 2
 
 class Note:
     in_date_fmt = "%d-%m-%Y"
     out_date_fmt = "%A %d %B"
+    title_marker = "~~"
 
     def __init__(self):
         self.username = None
@@ -17,7 +19,7 @@ class Note:
         self.created_date = None
         self.issue_date = "Termless"
 
-    def is_date_accepted(self, str_date = "", is_issue_date = False):
+    def _is_date_accepted(self, str_date = "", is_issue_date = False):
         try:
             date = datetime.strptime(str_date, self.in_date_fmt)
             if is_issue_date:
@@ -36,38 +38,47 @@ class Note:
             return False
 
     def fill_from_console(self):
-        prompt_list = ('Enter your name', 'Enter your note. If you want to add a title, or additional '
-                       'titles/headers within your text, use double tilde, e.g. ~~Some title~~',
-                       'Enter the note state: "a" if Active or "c" if Completed',
-                       'Enter the date of note creation in "dd-mm-yyyy" format or press Enter for auto input',
-                       'Enter the note expiration date in "dd-mm-yyyy" format or press Enter if termless')
+        prompt_list = (
+            'Enter your name', 'Enter your note. If you want to add a title,\nor additional '
+                               'titles/headers within your text,\nuse double tilde, e.g. ~~Some title~~',
+            'Enter the note state: "a" if Active, "c" if Completed or skip pressing Enter if TERMLESS',
+            'Enter the date of note creation in "dd-mm-yyyy" format or press Enter for auto input',
+            'Enter the note expiration date in "dd-mm-yyyy" format or press Enter if termless'
+        )
         for i, prompt in enumerate(prompt_list):
             while True:
                 user_input = input("\n"
                                    + prompt
                                    + (f" (today is {datetime.strftime(datetime.today(), self.in_date_fmt)}): "
                                    if i == 3 else ": "))
-                if i < 3 and not user_input:
+                if i < 2 and not user_input:
                     continue
                 match i:
                     case 0:
                         self.username = user_input
                     case 1:
-                        self.titles = user_input.split("~~")[1::2]
-                        self.content = user_input.replace("~~", "\n\n")
+                        if user_input.count(self.title_marker) > 1:
+                            self.titles = user_input.split(self.title_marker)[1::2]
+                            self.content = user_input.replace(self.title_marker, "\n\n")
+                            break
+                        self.content = user_input
+                        if user_input.count(" ") > 0:
+                            self.titles.append(user_input.split(" ")[0] + " " + user_input.split(" ")[1])
+                        else:
+                            self.titles.append(user_input)
                     case 2:
                         if user_input == 'a':
                             self.status = Status.ACTIVE
                         elif user_input == 'c':
                             self.status = Status.COMPLETED
                         else:
-                            continue
+                            self.status = Status.TERMLESS
                     case _:
                         if not user_input:
                             if i == 3:
                                 self.created_date = datetime.now()
                             break
-                        if not self.is_date_accepted(user_input, i == 4):
+                        if not self._is_date_accepted(user_input, i == 4):
                             continue
                 break
 
