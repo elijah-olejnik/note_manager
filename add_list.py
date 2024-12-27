@@ -87,15 +87,18 @@ class Note:
         print(self.__str__())
 
     def __str__(self):
-        return (f"User name: {self.username}\n"
-                f"{"\n".join("Title " + str(i + 1) + ": " + str(t) for i, t in enumerate(self.titles))}\n"
-                f"Content:\n\n{self.content}\n\n"
-                f"Status: {self.status.name}\n"
-                f"Created: {datetime.strftime(self.created_date, self.out_date_fmt)}\n"
-                f"Expired: {
-                datetime.strftime(self.issue_date, self.out_date_fmt)
-                if isinstance(self.issue_date, datetime)
-                else self.issue_date}\n")
+        return (
+            f"User name: {self.username}\n"
+            f"{"\n".join("Title " + str(i + 1) + ": " + str(t) for i, t in enumerate(self.titles))}\n"
+            f"Content:\n\n{self.content}\n\n"
+            f"Status: {self.status.name}\n"
+            f"Created: {datetime.strftime(self.created_date, self.out_date_fmt)}\n"
+            f"Expired: {
+            datetime.strftime(self.issue_date, self.out_date_fmt)
+            if isinstance(self.issue_date, datetime)
+            else self.issue_date
+            }\n"
+        )
 
 new_note = Note()
 new_note.fill_from_console()
