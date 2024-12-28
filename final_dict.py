@@ -68,15 +68,15 @@ class Note:
                     case 0:
                         self._note["username"] = user_input
                     case 1:
-                        titles = re.findall(self._regexp, user_input)
-                        if titles:
-                            self._note["titles"] = titles
+                        headers = re.findall(self._regexp, user_input)
+                        if headers:
+                            self._note["titles"] = headers
                             self._note["content"] = re.sub(self._regexp, r'\n\n\1\n\n', user_input)
                         else:
                             self._note["content"] = user_input
                             words = user_input.split()
                             if len(words) == 1:
-                                self._note["titles"].append(words[0])
+                                self._note["titles"] = words
                             elif len(words) == 2:
                                 self._note["titles"].append(" ".join(words[:2]))
                             else:

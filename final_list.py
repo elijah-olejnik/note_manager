@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import Enum
+import re
 
 class Status(Enum):
     ACTIVE = 0
@@ -9,7 +10,7 @@ class Status(Enum):
 class Note:
     in_date_fmt = "%d-%m-%Y"
     out_date_fmt = "%A %d %B"
-    title_marker = "~~"
+    _regexp = r'\{\{(.*?)\}\}'
 
     def __init__(self):
         self.note = [
@@ -49,8 +50,8 @@ class Note:
 
     def fill_from_console(self):
         prompts = (
-            'Enter your name', 'Enter your note. If you want to add a title, or additional '
-                               'titles/headers within your text, use double tilde, e.g. ~~Some title~~',
+            'Enter your name', 'Enter your note. If you want to add a title,\nor additional '
+                               'titles/headers within your text,\nuse double curly braces, e.g. {{Some title}}',
             'Enter the note state: type "a" if ACTIVE, "c" if COMPLETED or skip pressing Enter if TERMLESS',
             'Enter the date of note creation in "dd-mm-yyyy" format or press Enter for auto input',
             'Enter the note expiration date in "dd-mm-yyyy" format or press Enter if termless'
@@ -67,17 +68,19 @@ class Note:
                     case 0:
                         self.note[i] = user_input
                     case 1:
-                        if user_input.count(self.title_marker) > 1:
-                            self.note[i] = user_input.split(self.title_marker)[1::2]
-                            self.note[i + 1] = user_input.replace(self.title_marker, "\n\n")
-                            break
-                        elif user_input.count(" ") > 0:
-                            self.note[i].append(user_input.split(" ")[0] + " " + user_input.split(" ")[1])
-                            self.note[i + 1] = user_input
-                            break
+                        headers = re.findall(self._regexp, user_input)
+                        if headers:
+                            self.note[i] = headers
+                            self.note[i + 1] = re.sub(self._regexp, r'\n\n\1\n\n', user_input)
                         else:
-                            self.note[i].append(user_input)
                             self.note[i + 1] = user_input
+                            words = user_input.split()
+                            if len(words) == 1:
+                                self.note[i] = words
+                            elif len(words) == 2:
+                                self.note[i].append(" ".join(words[:2]))
+                            else:
+                                self.note[i].append(" ".join(words[:3]))
                     case 2:
                         if user_input == 'a':
                             self.note[i + 1] = Status.ACTIVE
@@ -109,7 +112,7 @@ class Note:
                         key + str(x + 1) + ": " + str(t) for x, t in enumerate(self.note[i])
                     ) + "\n"
                 case 2:
-                    output_string += "\n" + key + "\n\n" + self.note[i] + "\n\n"
+                    output_string += "\n" + key + "\n" + self.note[i] + "\n\n"
                 case 3:
                     output_string += key + self.note[i].name + "\n"
                 case 4:
