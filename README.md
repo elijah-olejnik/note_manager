@@ -29,15 +29,19 @@
 #### add_list.py
     I thought that it will be more convenient to add titles 
     (as many as you want) right in your note text while typing
-    it into console. So I added this feature and also made my code 
+    it into console, something like this:
+    ~~Title 1~~ text ~~Title 2~~ text, etc..
+    So I added that feature and also made my code 
     more readable with several optimisations: 
 
     1. I added the match-case statement in the fill_from_console() 
     function instead of complicated if-else conditions
     2. Separated the date input checkings to the private 
     function _is_date_accepted()
-    3. Added an additional note status: 
+    3. Added an additional note status: TERMLESS
 #### final_list.py & final_dict.py
     These scripts still doing much the same but (as a new feature) 
-    one saves the values to the list and another to the dictionary.
-    Both variants were in the tasks so I made both.
+    one saves the values to the list and another one - to the dictionary.
+    Both options were in the tasks so I made both. Also I used
+    regular expressions for title detection so user will type
+    headers in more convenient way: {{Title}} text {{Title 2}} text, etc.
