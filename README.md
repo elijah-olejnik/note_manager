@@ -49,4 +49,9 @@
 #### add_titles_loop.py
     This script asks user to add titles and saves them to the list if inputted
     string is unique and not empty. The stop word is "quit" so if the program
-    get this word as the user input it prints all titles back to console and quit. 
+    get this word as the user input it prints all titles back to console and quit.
+#### update_status.py
+    This script shows the "current" note state and asks user to enter the new state. If input
+    and the "current" state is the same - program tells user that the state remains the same
+    and exits. If user_input is not acceptable - program repeats the user_input routine.
+    If input is successful the progam tells user that the state have changed.
