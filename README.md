@@ -45,3 +45,8 @@
     Both options were in the tasks so I made both. Also I used
     regular expressions for title detection so user will type
     headers in more convenient way: {{Title}} text {{Title 2}} text, etc.
+### Stage 2
+#### add_titles_loop.py
+    This script asks user to add titles and saves them to the list if inputted
+    string is unique and not empty. The stop word is "quit" so if the program
+    get this word as the user input it prints all titles back to console and quit. 
