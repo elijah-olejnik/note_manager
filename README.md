@@ -1,6 +1,5 @@
 # note_manager
 ## Grade 1
-### Stage 1
 #### greetings.py
     This script prints out to console 6 the values of predefined 
     variables of the Note sketch with some formatting:
@@ -39,13 +38,14 @@
     2. Separated the date input checkings to the private 
     function _is_date_accepted()
     3. Added an additional note status: TERMLESS
+### Final task
 #### final_list.py & final_dict.py
     These scripts still doing much the same but (as a new feature) 
     one saves the values to the list and another one - to the dictionary.
     Both options were in the tasks so I made both. Also I used
     regular expressions for title detection so user will type
     headers in more convenient way: {{Title}} text {{Title 2}} text, etc.
-### Stage 2
+## Grade 2
 #### add_titles_loop.py
     This script asks user to add titles and saves them to the list if inputted
     string is unique and not empty. The stop word is "quit" so if the program
@@ -59,3 +59,5 @@
     This script shows the current date to the user and asks to input the deadline date.
     If input is correct, the program shows days before (or after) the deadline. If deadline
     is today - program tells about it. Two date formats is acceptable for the user input. 
+#### multiple_notes.py
+    in process...
