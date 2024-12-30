@@ -55,3 +55,7 @@
     and the "current" state is the same - program tells user that the state remains the same
     and exits. If user_input is not acceptable - program repeats the user_input routine.
     If input is successful the progam tells user that the state have changed.
+#### check_deadline.py
+    This script shows the current date to the user and asks to input the deadline date.
+    If input is correct, the program shows days before (or after) the deadline. If deadline
+    is today - program tells about it. Two date formats is acceptable for the user input. 
