@@ -1,4 +1,3 @@
-# TODO: check that the code works
 from datetime import datetime
 from enum import Enum
 import re
@@ -38,7 +37,14 @@ class NoteManager:
             return False, e
 
     def _add_from_console(self):
-        note = {}
+        note = {
+            "username": "",
+            "titles": [],
+            "content" : "",
+            "status" : Status.TERMLESS,
+            "created_date" : datetime.now(),
+            "issue_date" : "Termless"
+        }
         for i, prompt in enumerate(self._prompts):
             while True:
                 user_input = input("\n"
@@ -59,11 +65,11 @@ class NoteManager:
                             note["content"] = user_input
                             words = user_input.split()
                             if len(words) == 1:
-                                note["titles"] = words[0]
+                                note["titles"].append(words[0])
                             elif len(words) == 2:
-                                note["titles"] = " ".join(words[:2])
+                                note["titles"].append(" ".join(words[:2]))
                             else:
-                                note["titles"] = " ".join(words[:3])
+                                note["titles"].append(" ".join(words[:3]))
                     case 2:
                         match user_input:
                             case 'a':
@@ -76,21 +82,19 @@ class NoteManager:
                                 note["status"] = Status.TERMLESS
                     case _:
                         if not user_input:
-                            if i == 3:
-                                note["created_date"] = datetime.now()
                             break
                         result = self._is_date_accepted(user_input, i == 4)
                         if result[0]:
                             if i == 3:
                                 note["created_date"] = result[1]
-                            else:
+                            elif i == 4:
                                 if result[1] < note.get("created_date"):
-                                    print("The deadline date of a note can't be "
+                                    print("\nThe deadline date of a note can't be "
                                                      "earlier than the date it was created!")
                                     continue
                                 note["issue_date"] = result[1]
                         else:
-                            print(result[1])
+                            print("\n", result[1])
                             continue
                 break
         self._notes.append(note)
@@ -102,16 +106,16 @@ class NoteManager:
     def interact_with_console(self):
         print("\n", "Welcome to the note manager!\n")
         while True:
-            command = input("\nEnter 'n' for a new note or 'q' for quit: ")
+            command = input("Enter 'n' for a new note or 'q' for quit: ")
             match command:
                 case 'q':
                     break
                 case 'n':
                     self._add_from_console()
                 case _:
-                    print(f"\n{command} is not a command")
+                    print(f"{command} is not a command")
                     continue
-        print("\nHere is your notes:\n\n")
+        print("\nHere is your notes:\n")
         print(self.__str__())
 
     def __str__(self):
