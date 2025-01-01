@@ -65,7 +65,7 @@ class NoteManager:
                             note["content"] = user_input
                             words = user_input.split()
                             if len(words) == 1:
-                                note["titles"].append(words[0])
+                                note.get("titles").append(words[0])
                             elif len(words) == 2:
                                 note["titles"].append(" ".join(words[:2]))
                             else:
@@ -99,9 +99,6 @@ class NoteManager:
                 break
         self._notes.append(note)
         print("\nYour note is successfully saved\n")
-
-    def print_all_to_console(self):
-        print(self.__str__())
 
     def interact_with_console(self):
         print("\n", "Welcome to the note manager!\n")
