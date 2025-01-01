@@ -60,7 +60,7 @@
     If input is correct, the program shows days before (or after) the deadline. If deadline
     is today - program tells about it. Two date formats is acceptable for the user input. 
 #### multiple_notes.py
-    This script is a modified version of final.py from the first grade. It can add and display
-    multiple notes
+    This script is a modified version of final.py from the first grade. It can add, display
+    and save multiple notes to JSON file (for the next task)
 #### delete_note.py
     in process...

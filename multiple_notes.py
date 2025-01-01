@@ -2,6 +2,7 @@ from datetime import datetime
 from enum import Enum
 import re
 from typing import Tuple, Union
+import json
 
 class Status(Enum):
     ACTIVE = 0
@@ -9,13 +10,23 @@ class Status(Enum):
     TERMLESS = 2
     POSTPONED = 3
 
+class NoteEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, Enum):
+            return o.name
+        elif isinstance(o, datetime):
+            return o.isoformat()
+        else:
+            return o
+
 class NoteManager:
     _in_date_fmt = "%d-%m-%Y"
     _out_date_fmt = "%B %d, %Y"
     _regexp = r'\{\{(.*?)\}\}'
     _prompts = (
         'Enter your name', 'Enter your note. If you want to add a title,\nor an additional '
-                           'titles/headers within your text,\nuse double curly braces, e.g. {{Some title}}',
+                           'titles/headers within your text,\nuse double curly braces, e.g. {{Some title}}.'
+                           '\nUse Enter key to add a new line,\nor type "end" to finish the note input\n',
         'Enter the note state: type "a" if ACTIVE, "c" if COMPLETED, "p" if POSTPONED '
         'or skip pressing Enter if TERMLESS',
         'Enter the date of note creation in "dd-mm-yyyy" format or press Enter for auto input',
@@ -50,7 +61,7 @@ class NoteManager:
             while True:
                 user_input = input("\n"
                                    + prompt
-                                   + (f" (today is {datetime.strftime(datetime.today(), self._in_date_fmt)}): "
+                                   + (f" (today is {datetime.strftime(note["created_date"], self._in_date_fmt)}): "
                                    if i == 3 else ": "))
                 if i < 2 and not user_input:
                     continue
@@ -58,15 +69,20 @@ class NoteManager:
                     case 0:
                         note["username"] = user_input
                     case 1:
+                        while True:
+                            new_line = input()
+                            if new_line.lower() == "end":
+                                break
+                            user_input += "\n" + new_line
                         headers = re.findall(self._regexp, user_input)
                         if headers:
                             note["titles"] = headers
-                            note["content"] = re.sub(self._regexp, r'\n\n\1\n\n', user_input)
+                            note["content"] = re.sub(self._regexp, r'\n\1\n', user_input)
                         else:
                             note["content"] = user_input
                             words = user_input.split()
                             if len(words) == 1:
-                                note.get("titles").append(words[0])
+                                note["titles"].append(words[0])
                             elif len(words) == 2:
                                 note["titles"].append(" ".join(words[:2]))
                             else:
@@ -130,6 +146,10 @@ class NoteManager:
     def get_all_notes_as_str(self):
         return self.__str__()
 
+    def save_json(self):
+        with open("notes.json", 'w') as file_:
+            file_.write(json.dumps(self._notes, cls = NoteEncoder, indent = 4))
+
 note_manager = NoteManager()
 
 print("\n", "Welcome to the note manager!\n")
@@ -144,3 +164,5 @@ while True:
             print(f"{command} is not a command")
             continue
 print("\nHere is your notes:", note_manager.get_all_notes_as_str())
+note_manager.save_json()
+print("File saved")

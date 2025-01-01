@@ -1,0 +1,22 @@
+[
+    {
+        "username": "Ilia Oleinik",
+        "titles": [
+            "My Python questions"
+        ],
+        "content": "\nMy Python questions\n\n1. How do I check the sizeof(variable)?\n2. Where and how the memory is allocated for the variables?\n3. Is there Heap or Stack concepts in Python?\n4. How can I manage the padding (alignment in the memory) if the variable is lesser than 4 bytes?\n5. What are the best memory consumption reduce practices in Python?\n6. What are the prospects for writing high-performance self-learning models for embedded and IoT using Python?",
+        "status": "ACTIVE",
+        "created_date": "2024-12-22T00:00:00",
+        "issue_date": "2025-02-22T00:00:00"
+    },
+    {
+        "username": "Sheldon, the dog",
+        "titles": [
+            "My weekday"
+        ],
+        "content": "\nMy weekday\n\nWoke up, watched through the window, eated, walked and barked on everything",
+        "status": "TERMLESS",
+        "created_date": "2025-01-02T02:43:32.383806",
+        "issue_date": "Termless"
+    }
+]
