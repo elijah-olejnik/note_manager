@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
 import re
+from typing import Tuple, Union
 
 class Status(Enum):
     ACTIVE = 0
@@ -10,7 +11,7 @@ class Status(Enum):
 
 class NoteManager:
     _in_date_fmt = "%d-%m-%Y"
-    _out_date_fmt = "%A %d %B"
+    _out_date_fmt = "%B %d, %Y"
     _regexp = r'\{\{(.*?)\}\}'
     _prompts = (
         'Enter your name', 'Enter your note. If you want to add a title,\nor an additional '
@@ -24,7 +25,7 @@ class NoteManager:
     def __init__(self):
         self._notes = []
 
-    def _is_date_accepted(self, str_date = "", is_issue_date = False):
+    def _is_date_accepted(self, str_date = "", is_issue_date = False) -> Tuple[bool, Union[datetime, ValueError]]:
         try:
             date = datetime.strptime(str_date, self._in_date_fmt)
             if is_issue_date:
@@ -36,7 +37,7 @@ class NoteManager:
         except ValueError as e:
             return False, e
 
-    def _add_from_console(self):
+    def add_from_console(self):
         note = {
             "username": "",
             "titles": [],
@@ -100,24 +101,10 @@ class NoteManager:
         self._notes.append(note)
         print("\nYour note is successfully saved\n")
 
-    def interact_with_console(self):
-        print("\n", "Welcome to the note manager!\n")
-        while True:
-            command = input("Enter 'n' for a new note or 'q' for quit: ")
-            match command:
-                case 'q':
-                    break
-                case 'n':
-                    self._add_from_console()
-                case _:
-                    print(f"{command} is not a command")
-                    continue
-        print("\nHere is your notes:\n")
-        print(self.__str__())
-
     def __str__(self):
         output_string = ""
-        for note in self._notes:
+        for i, note in enumerate(self._notes):
+            output_string += f"\n\nNote {i + 1}\n\n"
             for key, value in note.items():
                 match key:
                     case "titles":
@@ -137,7 +124,23 @@ class NoteManager:
                         )
                     case _:
                         output_string += key.capitalize() + ": " + value + "\n"
+            output_string += "\n" + "_" * 30
         return output_string
 
+    def get_all_notes_as_str(self):
+        return self.__str__()
+
 note_manager = NoteManager()
-note_manager.interact_with_console()
+
+print("\n", "Welcome to the note manager!\n")
+while True:
+    command = input("Enter 'n' for a new note or 'q' for quit: ")
+    match command:
+        case 'q':
+            break
+        case 'n':
+            note_manager.add_from_console()
+        case _:
+            print(f"{command} is not a command")
+            continue
+print("\nHere is your notes:", note_manager.get_all_notes_as_str())
