@@ -1,5 +1,6 @@
 [
     {
+        "id": "3706",
         "username": "Ilia Oleinik",
         "titles": [
             "My Python questions"
@@ -10,11 +11,12 @@
         "issue_date": "2025-02-22T00:00:00"
     },
     {
+        "id": "0623",
         "username": "Sheldon, the dog",
         "titles": [
             "My weekday"
         ],
-        "content": "\nMy weekday\n\nWoke up, watched through the window, eated, walked and barked on everything",
+        "content": "\nMy weekday\n\nWoke up, watched through the window, ate, walked and barked on everything",
         "status": "TERMLESS",
         "created_date": "2025-01-02T02:43:32.383806",
         "issue_date": "Termless"

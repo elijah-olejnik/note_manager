@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 from enum import Enum
 import re
@@ -36,6 +37,11 @@ class NoteManager:
     def __init__(self):
         self._notes = []
 
+    def has_notes(self):
+        if len(self._notes) < 1:
+            return False
+        return True
+
     def _is_date_accepted(self, str_date = "", is_issue_date = False) -> Tuple[bool, Union[datetime, ValueError]]:
         try:
             date = datetime.strptime(str_date, self._in_date_fmt)
@@ -49,7 +55,9 @@ class NoteManager:
             return False, e
 
     def add_from_console(self):
+        id_ = random.randint(0000, 9999)
         note = {
+            "id" : id_,
             "username": "",
             "titles": [],
             "content" : "",
@@ -120,7 +128,7 @@ class NoteManager:
     def __str__(self):
         output_string = ""
         for i, note in enumerate(self._notes):
-            output_string += f"\n\nNote {i + 1}\n\n"
+            output_string += f"\n\nNote ID #{note["id"]}\n\n"
             for key, value in note.items():
                 match key:
                     case "titles":
@@ -146,23 +154,53 @@ class NoteManager:
     def get_all_notes_as_str(self):
         return self.__str__()
 
-    def save_json(self):
+    def delete_note(self, key):
+        if key.isdigit():
+            id_ = int(key)
+            for i, note in enumerate(self._notes):
+                if note["id"] == id_:
+                    self._notes.pop(i)
+                    return True
+        else:
+            for i, note in enumerate(self._notes):
+                if key in note["titles"][0]:
+                    self._notes.pop(i)
+                    return True
+        return False
+
+    def is_json_saved(self):
+        if self.has_notes():
+            return False
         with open("notes.json", 'w') as file_:
             file_.write(json.dumps(self._notes, cls = NoteEncoder, indent = 4))
+        return True
 
 note_manager = NoteManager()
 
 print("\n", "Welcome to the note manager!\n")
 while True:
-    command = input("Enter 'n' for a new note or 'q' for quit: ")
+    command = input("Enter 'n' for a new note, 'd' to delete one or 'q' for quit: ")
     match command:
         case 'q':
             break
+        case 'd':
+            if not note_manager.has_notes():
+                print("\nNo notes yet")
+                continue
+            print("\nHere are your notes:", note_manager.get_all_notes_as_str())
+            while True:
+                user_key = input("Enter an ID or the title of the note to delete: ")
+                if not note_manager.delete_note(user_key):
+                    print(f"The note {user_key} not found!")
+                    continue
+                print(f"\nThe note {user_key} is successfully deleted")
         case 'n':
             note_manager.add_from_console()
         case _:
             print(f"{command} is not a command")
             continue
-print("\nHere is your notes:", note_manager.get_all_notes_as_str())
-note_manager.save_json()
-print("File saved")
+
+print("\nHere are your notes:", note_manager.get_all_notes_as_str())
+
+if note_manager.is_json_saved():
+    print("File saved")
