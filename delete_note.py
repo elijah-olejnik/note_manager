@@ -77,18 +77,21 @@ def format_output():
 
 
 def delete_notes(indexes):
-    for i in indexes:
-        notes.remove(i)
+    for i in sorted(indexes, reverse = True):
+        del notes[i]
 
 
 def search_notes(keys):
-    notes_found = []
+    notes_found = set()
     for i, note in enumerate(notes):
         for key in keys:
+            if key[0] == " ":
+                ey = key[1:]
+                key = ey
             if key.lower() in note["username"].lower():
-                notes_found.append(i)
+                notes_found.add(i)
             elif key.lower() in note["titles"][0].lower():
-                notes_found.append(i)
+                notes_found.add(i)
     if len(notes_found) > 0:
         return True, notes_found
     else:
@@ -103,7 +106,7 @@ while True:
     if not result[0]:
         print("\nNot a single note found by your keyword")
         continue
-    print(f"\nFound notes: {result[1]}")
+    print(f"\nFound notes: {len(result[1])}")
     while True:
         user_input = input("Delete? (yes, no): ")
         if user_input not in ('yes', 'no'):
@@ -114,4 +117,4 @@ while True:
         break
     break
 
-print("\nNotes remained:", format_output())
+print("\nNotes remained:", len(notes), format_output())
