@@ -168,12 +168,15 @@ class NoteManager:
                     return True
         return False
 
-    def is_json_saved(self):
-        if self.has_notes():
-            return False
-        with open("notes.json", 'w') as file_:
-            file_.write(json.dumps(self._notes, cls = NoteEncoder, indent = 4))
-        return True
+    # def is_json_saved(self):
+    #     if not self.has_notes():
+    #         return False
+    #     try:
+    #         with open("notes.json", 'w') as file_:
+    #             file_.write(json.dumps(self._notes, cls = NoteEncoder, indent = 4))
+    #         return True
+    #     except (ValueError, OSError):
+    #         return False
 
 note_manager = NoteManager()
 
@@ -202,5 +205,5 @@ while True:
 
 print("\nHere are your notes:", note_manager.get_all_notes_as_str())
 
-if note_manager.is_json_saved():
-    print("File saved")
+# if note_manager.is_json_saved():
+#     print("File saved")
