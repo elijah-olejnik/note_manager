@@ -87,7 +87,7 @@ def search_notes(keys):
         for key in keys:
             if key.lower() in note["username"].lower():
                 notes_found.append(i)
-            elif key.lower in note["titles"][0].lower():
+            elif key.lower() in note["titles"][0].lower():
                 notes_found.append(i)
     if len(notes_found) > 0:
         return True, notes_found
