@@ -11,7 +11,7 @@
         "issue_date": "2025-02-22T00:00:00"
     },
     {
-        "id": "0623",
+        "id": "1623",
         "username": "Sheldon, the dog",
         "titles": [
             "My weekday"
@@ -19,6 +19,18 @@
         "content": "\nMy weekday\n\nWoke up, watched through the window, ate, walked and barked on everything",
         "status": "TERMLESS",
         "created_date": "2025-01-02T02:43:32.383806",
+        "issue_date": "Termless"
+    },
+    {
+        "id": "7524",
+        "username": "Galina",
+        "titles": [
+            "Movies I like",
+            "Movies I don't like"
+        ],
+        "content": "\nMovies I like\n\nGrinch, Harry Potter, Taxi, Asterix & Obelix\n\nMovies I don't like\n\nThe Matrix, Blade, Begotten, Sex And The City",
+        "status": "TERMLESS",
+        "created_date": "2025-01-02T02:50:12.214543",
         "issue_date": "Termless"
     }
 ]
