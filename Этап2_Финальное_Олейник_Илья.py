@@ -7,7 +7,6 @@ import readline
 from enum import Enum
 from typing import Tuple, Union
 
-
 class Status(Enum):
     ACTIVE = 0
     COMPLETED = 1
@@ -30,6 +29,10 @@ class Note:
     issue_date: datetime.date = dataclasses.field(default_factory=lambda: datetime.min)
     titles: list = dataclasses.field(default_factory=list)
     _id: int = random.randint(10000, 99999)
+
+    def __init__(self, note_dict = None):
+        if isinstance(note_dict, dict):
+            self.add_from_dictionary(note_dict)
 
     @property
     def id(self) -> int:
@@ -69,13 +72,22 @@ class Note:
         )
 
 class NoteEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, Enum):
-            return o.name
-        elif isinstance(o, datetime):
-            return o.isoformat()
+    def default(self, obj):
+        if isinstance(obj, Enum):
+            return obj.name
+        elif isinstance(obj, datetime):
+            return obj.isoformat()
         else:
-            return o
+            return obj
+
+def note_decoder(obj):
+    obj["status"] = Status[obj["status"]]
+    obj["created_date"] = datetime.fromisoformat(obj["created_date"])
+    try:
+        obj["issue_date"] = datetime.fromisoformat(obj["issue_date"])
+    except ValueError:
+        pass
+    return obj
 
 class NoteManager:
     _in_date_fmts = ("%d-%m-%Y %H:%M", "%Y-%m-%d %H:%M", "%d.%m.%Y %H:%M", "%d/%m/%Y %H:%M")
@@ -88,19 +100,76 @@ class NoteManager:
         'or skip pressing Enter if TERMLESS',
         f'Enter the date and time of note creation or press Enter for auto input\nAcceptable formats:\n'
         f'{"\n".join(_in_date_fmts)}\n\nCreated',
-        'Enter the date and time of the note deadline or press Enter if termless\nAcceptable formats:\n'
+        'Enter the date and time of the deadline or press Enter if termless\nAcceptable formats:\n'
         f'{"\n".join(_in_date_fmts)}\n\nDeadline'
     )
 
     def __init__(self):
         self._notes = []
+        self._load_from_json()
 
-    def has_notes(self):
-        if len(self._notes) < 1:
-            return False
-        return True
+    def notes_count(self):
+        return len(self._notes)
 
-    def _is_date_accepted(self, str_date = "", is_issue_date = False) -> Tuple[bool, Union[datetime, ValueError]]:
+    def _load_from_json(self):
+        try:
+            with open("notes.json") as f:
+                import_list = json.loads(f.read(), object_hook=note_decoder)
+            for note_dic in import_list:
+                note = Note(note_dic)
+                self._notes.append(note)
+        except (OSError, ValueError) as e:
+            print("Couldn't open/read notes.json:", e)
+
+    def _save_to_json(self):
+        export_list = []
+        for note in self._notes:
+            export_list.append(note.as_dictionary)
+        try:
+            with open("notes.json", 'w') as file_:
+                file_.write(json.dumps(export_list, cls=NoteEncoder, indent=4))
+        except (ValueError, OSError) as e:
+            print("The note manager can't save changes:", e)
+
+    def delete_notes(self, ids):
+        for i, note in enumerate(self._notes):
+            if note.id in ids:
+                del self._notes[i]
+        if self.notes_count() > 0:
+            self._save_to_json()
+
+    def get_urgent_notes_info(self):
+        missed_dl = []
+        today_dl = []
+        oneday_dl = []
+        for note in self._notes:
+            if note.status != Status.TERMLESS:
+                days = (note.issue_date - datetime.now()).days
+                if days < 0:
+                    missed_dl.append((note.id, note.titles[0], days))
+                elif days == 0:
+                    today_dl.append((note.id, note.titles[0], days))
+                elif days == 1:
+                    oneday_dl.append((note.id, note.titles[0], days))
+        output_string = ""
+        missed_count = len(missed_dl)
+        today_count = len(today_dl)
+        oneday_count = len(oneday_dl)
+        if missed_count > 0:
+            output_string += "Notes with missed deadline: " + str(missed_count) + "\n" + "\n".join(
+                note_info[2] + " " + str(note_info[1]) + str(abs(note_info[0])) for note_info in missed_dl
+            ) + "\n"
+        elif today_count > 0:
+            output_string += "Notes which deadline is today: " + str(today_count) + "\n" + "\n".join(
+                note_info[2] + " " + str(note_info[1]) + str(abs(note_info[0])) for note_info in today_dl
+            ) + "\n"
+        elif oneday_count > 0:
+            output_string += "Notes which deadline is tomorrow: " + str(oneday_count) + "\n" + "\n".join(
+                note_info[2] + " " + str(note_info[1]) + str(abs(note_info[0])) for note_info in oneday_dl
+            ) + "\n"
+        return output_string
+
+    def _is_date_acceptable(self, str_date ="", is_issue_date = False) -> Tuple[bool, Union[datetime, ValueError]]:
         for fmt in self._in_date_fmts:
             try:
                 date = datetime.strptime(str_date, fmt)
@@ -158,7 +227,7 @@ class NoteManager:
                     case _:
                         if not user_input:
                             break
-                        result = self._is_date_accepted(user_input, i == 4)
+                        result = self._is_date_acceptable(user_input, i == 4)
                         if result[0]:
                             if i == 3:
                                 note.created_date = result[1]
@@ -175,62 +244,69 @@ class NoteManager:
         self._notes.append(note)
         print("\nYour note is successfully saved\n")
 
+    def get_notes_by_keys(self, keys):
+        notes_found = set()
+        for i, note in enumerate(self._notes):
+            for key in keys:
+                if key[0] == " ":
+                    ey = key[1:]
+                    key = ey
+                if key.isdigit() and int(key) == note.id:
+                    notes_found.add(i)
+                elif key.lower() in note.username.lower():
+                    notes_found.add(i)
+                elif key.lower() in note.content.lower():
+                    notes_found.add(i)
+        return notes_found
+
     def __str__(self):
         output_string = ""
         for i, note in enumerate(self._notes):
             output_string += note + ("_" * 30)
         return output_string
 
-    def delete_note(self, key):
-        if key.isdigit():
-            id_ = int(key)
-            for i, note in enumerate(self._notes):
-                if note.id == id_:
-                    self._notes.pop(i)
-                    return True
-        else:
-            for i, note in enumerate(self._notes):
-                if key in note["titles"][0]:
-                    self._notes.pop(i)
-                    return True
-        return False
+def main():
+    note_manager = NoteManager()
 
-    def _save_to_json(self):
-        try:
-            with open("notes.json", 'w') as file_:
-                file_.write(json.dumps(self._notes, cls = NoteEncoder, indent = 4))
-        except (ValueError, OSError) as e:
-            print("The note manager can't save changes:", e)
+    print("\n", "Welcome to the note manager!\n")
 
-    # def _load_from_json(self): TODO
+    notes_count = note_manager.notes_count()
+    if notes_count > 0:
+        print(f"{notes_count}", "notes" if notes_count > 1 else "note", "found")
 
-note_manager = NoteManager()
-
-print("\n", "Welcome to the note manager!\n")
-
-while True:
-    command = input("Enter 'n' for a new note, 'd' to delete one or 'q' for quit: ")
-    match command:
-        case 'q':
-            break
-        case 'd':
-            if not note_manager.has_notes():
-                print("\nNo notes yet")
+    notify_string = note_manager.get_urgent_notes_info()
+    if notify_string:
+        print(notify_string)
+# TODO: refactor CLI!!!
+    while True:
+        command = input(
+            "Enter 'n' for a new note,\n's' to search notes by keywords,\n'v' to view a specific note,\n"
+            "'a' to display all notes or\n'q' for quit: "
+        )
+        match command:
+            case 'q':
+                break
+            case 'a':
+                print("\nHere are your notes:", note_manager)
                 continue
-            print("\nHere are your notes:", note_manager)
-            while True:
-                user_key = input("Enter an ID or the title of the note to delete: ")
-                if not note_manager.delete_note(user_key):
-                    print(f"The note {user_key} not found!")
+            case 'd':
+                if not note_manager.has_notes():
+                    print("\nNo notes yet")
                     continue
-                print(f"\nThe note {user_key} is successfully deleted")
-        case 'n':
-            note_manager.add_from_console()
-        case _:
-            print(f"{command} is not a command")
-            continue
+                print("\nHere are your notes:", note_manager)
+                while True:
+                    user_key = input("Enter an ID or the title of the note to delete: ")
+                    if not note_manager.delete_note(user_key): # REFACTOR
+                        print(f"The note {user_key} not found!")
+                        continue
+                    print(f"\nThe note {user_key} is successfully deleted")
+            case 'n':
+                note_manager.add_from_console()
+            case _:
+                print(f"{command} is not a command")
+                continue
 
-print("\nHere are your notes:", note_manager)
+    print("\nHere are your notes:", note_manager)
 
 # if note_manager.is_json_saved():
 #     print("File saved")
