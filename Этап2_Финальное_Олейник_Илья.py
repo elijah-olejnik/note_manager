@@ -255,19 +255,19 @@ class NoteManager:
         print("\nYour note is successfully saved\n")
 
     # Search function
-    def get_notes_by_keys(self, keys):
+    def get_notes_indexes_by_keys(self, keys):
         notes_found = set()
-        for note in self._notes:
+        for i, note in enumerate (self._notes):
             for key in keys:
                 if key[0] == " ":
                     ey = key[1:]
                     key = ey
                 if key.isdigit() and int(key) == note.id_:
-                    notes_found.add(note)
+                    notes_found.add(i)
                 elif key.lower() in note.username.lower():
-                    notes_found.add(note)
+                    notes_found.add(i)
                 elif key.lower() in note.content.lower():
-                    notes_found.add(note)
+                    notes_found.add(i)
         return notes_found
 
     def get_note_idx_by_id(self, id_):
@@ -276,6 +276,9 @@ class NoteManager:
             if note.id_ == id_:
                 idx = i
         return idx
+
+    def get_note_by_idx(self, i):
+        return self._notes[i]
 
     def edit_note_in_console(self):
         i = 0
@@ -318,6 +321,14 @@ class NoteManager:
                     self._notes[i].content = edited_text
                     self._save_to_json()
                 case '2':
+                    print(
+                        f"\nThe current note state is {self._notes[i].status.name}\n"
+                        "Choose the new state:\n\n"
+                        "0 or active for ACTIVE\n"
+                        "1 or completed for COMPLETED\n"
+                        "2 or completed for TERMLESS\n"
+                        "3 or postponed for POSTPONED\n"
+                    )
                     while True:
                         user_input = input("\nSwitch state to: ").lower()
                         if user_input in (self._notes[i].status.name.lower(), str(self._notes[i].status.value)):
@@ -393,11 +404,13 @@ def main():
                 print("\nHere are your notes:", note_manager)
             case 's':
                 keywords = input("Enter a username, titles, keywords or IDs separated by ';'\n"
-                                 "or 'm' to return to the main menu: ").split(";")
-                found = note_manager.get_notes_by_keys(keywords)
+                                 "or leave blank to return to the main menu: ").split(";")
+                if not keywords:
+                    break
+                found = note_manager.get_notes_indexes_by_keys(keywords)
                 if len(found) > 0:
-                    for note in found:
-                        print(note)
+                    for i in found:
+                        print(note_manager.get_note_by_idx(i))
                 else:
                     print("\nNo matches found")
             case 'e':
