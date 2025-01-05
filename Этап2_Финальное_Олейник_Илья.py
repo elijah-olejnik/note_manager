@@ -31,19 +31,15 @@ class Note:
     created_date: datetime.date = dataclasses.field(default_factory=datetime.now)
     issue_date: datetime.date = dataclasses.field(default_factory=lambda: datetime.min)
     titles: list = dataclasses.field(default_factory=list)
-    _id: int = random.randint(10000, 99999)
+    id_: int = random.randint(10000, 99999)
 
     def __init__(self, note_dict = None):
         if isinstance(note_dict, dict):
             self.add_from_dictionary(note_dict)
 
-    @property
-    def id(self) -> int:
-        return self._id
-
     def as_dictionary(self):
         return {
-            "id": self._id,
+            "id": self.id_,
             "username": self.username,
             "titles": self.titles,
             "content": self.content,
@@ -53,7 +49,7 @@ class Note:
         }
 
     def add_from_dictionary(self, note_dic):
-        self._id = note_dic["id"]
+        self.id_ = int(note_dic["id"])
         self.username = note_dic["username"]
         self.titles = note_dic["titles"]
         self.content = note_dic["content"]
@@ -64,7 +60,7 @@ class Note:
     def __str__(self):
         date_display_fmt: str = "%B %d, %Y %H:%M"
         return (
-            f"\n\nNote ID #{self._id}\n\n"
+            f"\n\nNote ID #{self.id_}\n\n"
             f"Username: {self.username}\n"
             f"{"\n".join("Title " + str(i+1) + ": " + title for i, title in enumerate(self.titles))}\n"
             f"Content: \n{self.content}\n\n"
@@ -134,10 +130,8 @@ class NoteManager:
         except (ValueError, OSError) as e:
             print("The note manager can't save changes:", e)
 
-    def delete_note(self, id_):
-        for i, note in enumerate(self._notes):
-            if note.id == id_:
-                del self._notes[i]
+    def delete_note(self, idx):
+        del self._notes[idx]
         if self.notes_count() > 0:
             self._save_to_json()
 
@@ -160,19 +154,19 @@ class NoteManager:
         oneday_count = len(oneday_dl)
         if missed_count > 0:
             output_string += "Notes with missed deadline: " + str(missed_count) + "\n" + "\n".join(
-                note_info[0].titles[0] + " #" + str(note_info[0].id) + str(abs(note_info[1])) for note_info in missed_dl
+                note_info[0].titles[0] + " #" + str(note_info[0].id_) + str(abs(note_info[1])) for note_info in missed_dl
             ) + "\n"
         elif today_count > 0:
             output_string += "Notes which deadline is today: " + str(today_count) + "\n" + "\n".join(
-                note_info[0].titles[0] + " " + str(note_info[0].id) + str(note_info[1]) for note_info in today_dl
+                note_info[0].titles[0] + " " + str(note_info[0].id_) + str(note_info[1]) for note_info in today_dl
             ) + "\n"
         elif oneday_count > 0:
             output_string += "Notes which deadline is tomorrow: " + str(oneday_count) + "\n" + "\n".join(
-                note_info[0].titles[0] + " " + str(note_info[0].id) + str(note_info[1]) for note_info in oneday_dl
+                note_info[0].titles[0] + " " + str(note_info[0].id_) + str(note_info[1]) for note_info in oneday_dl
             ) + "\n"
         return output_string, missed_dl + today_dl + oneday_dl
 
-    def _is_date_acceptable(self, str_date ="", is_issue_date = False) -> Tuple[bool, Union[datetime, ValueError]]:
+    def _is_date_acceptable(self, str_date = "", is_issue_date = False) -> Tuple[bool, Union[datetime, ValueError]]:
         for fmt in self._in_date_fmts:
             try:
                 date = datetime.strptime(str_date, fmt)
@@ -254,7 +248,7 @@ class NoteManager:
                 if key[0] == " ":
                     ey = key[1:]
                     key = ey
-                if key.isdigit() and int(key) == note.id:
+                if key.isdigit() and int(key) == note.id_:
                     notes_found.add(note)
                 elif key.lower() in note.username.lower():
                     notes_found.add(note)
@@ -262,20 +256,99 @@ class NoteManager:
                     notes_found.add(note)
         return notes_found
 
-    # def edit_note_in_console(self, id_): TODO
+    def _get_note_idx_by_id(self, id_):
+        idx = -1
+        for i, note in enumerate(self._notes):
+            if note.id_ == id_:
+                idx = i
+        return idx
 
+    def edit_note_in_console(self):
+        i = 0
+        while True:
+            note_id = input("Enter the note id or 'm' to return to the main menu: ")
+            if not note_id.isdigit():
+                if note_id == 'm':
+                    return
+                else:
+                    continue
+            i = self._get_note_idx_by_id(int(note_id))
+            if i == -1:
+                print("\nNo such note!")
+                continue
+            else:
+                break
+        while True:
+            print(self._notes[i])
+            command = input(
+                "Choose what to edit:\n"
+                "'0' - Username\n"
+                "'1' - Note text\n"
+                "'2' - Note state\n"
+                "'3' - Deadline\n"
+                "'4' - delete note\n"
+                "'5' - Return to the main menu\n\n"
+                "Enter the number: "
+            )
+            match command:
+                case '0':
+                    while True:
+                        username = input("Enter new username: ")
+                        if not username:
+                            continue
+                        self._notes[i].username = username
+                        break
+                case '1':
+                    edited_text = curses.wrapper(femto.femto, self._notes[i].content)
+                    self._notes[i].content = edited_text
+                case '2':
+                    while True:
+                        user_input = input("\nSwitch state to: ").lower()
+                        if user_input in (self._notes[i].status.name.lower(), str(self._notes[i].status.value)):
+                            print(f"The note state remained the same: {self._notes[i].status.name}")
+                            break
+                        match user_input:
+                            case '0' | 'active':
+                                self._notes[i].status = Status.ACTIVE
+                            case '1' | 'completed':
+                                self._notes[i].status = Status.COMPLETED
+                            case '2' | 'termless':
+                                self._notes[i].status = Status.TERMLESS
+                            case '3' | 'postponed':
+                                self._notes[i].status = Status.POSTPONED
+                            case _:
+                                print("Try again")
+                                continue
+                        break
+                case '3':
+                    while True:
+                        user_input = input("Enter the deadline date in 'dd-mm-yyyy' or 'yyyy-mm-dd' format: ")
+                        result = self._is_date_acceptable(user_input, True)
+                        if result[0]:
+                            if result[1] < self._notes[i].created_date:
+                                print("\nThe deadline date of a note can't be "
+                                      "earlier than the date it was created!")
+                                continue
+                            self._notes[i].issue_date = result[1]
+                        else:
+                            print("\n", result[1])
+                            continue
+                        break
+                case '4':
+                    self.delete_note(i)
+                case '5':
+                    break
 
     def __str__(self):
         output_string = ""
         for i, note in enumerate(self._notes):
-            output_string += note + ("_" * 30)
+            output_string += note.__str__() + ("_" * 30) # Can't concatenate note + str!?
         return output_string
 
+# main() function
 def main():
     note_manager = NoteManager()
-
     print("\n", "Welcome to the note manager!\n")
-
     notes_count = note_manager.notes_count()
     if notes_count > 0:
         print(f"{notes_count}", "notes" if notes_count > 1 else "note", "found")
@@ -285,18 +358,18 @@ def main():
         choice = input("View this notes? y | n: ")
         if choice == 'y':
             print(note for note in urgent[1])
-# TODO: refactor CLI!!!
     while True:
-        command = input(
-            "Enter 'n' for a new note,\n's' to search notes by keywords,\n'e' to edit a specific note,\n"
-            "'a' to display all notes,\n'd' to delete a specific note or\n'q' for quit: "
-        )
+        print("\nn - new note")
+        print("a - view all notes")
+        print("s - search/vew note(s)")
+        print("e - edit or delete note")
+        print("q - quit\n")
+        command = input("Enter a command: ")
         match command:
             case 'q':
                 break
             case 'a':
                 print("\nHere are your notes:", note_manager)
-                continue
             case 's':
                 keywords = input("Enter a username, titles, keywords or IDs separated by ';'\n"
                                  "or 'm' to return to the main menu: ").split(";")
@@ -304,15 +377,15 @@ def main():
                 if len(found) > 0:
                     for note in found:
                         print(note)
-                continue
+                else:
+                    print("\nNo matches found")
             case 'e':
-                note_id = int(input("Enter the note id or 'm' to return to the main menu: "))
-
-                note_manager.edit_note_in_console(note_id)
+                note_manager.edit_note_in_console()
             case 'n':
                 note_manager.add_from_console()
             case _:
                 print(f"{command} is not a command")
-                continue
 
-    print("\nHere are your notes:", note_manager)
+
+if __name__ == "__main__":
+    main()
