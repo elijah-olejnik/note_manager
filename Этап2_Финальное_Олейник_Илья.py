@@ -6,7 +6,9 @@ import random
 import re
 from enum import Enum
 from typing import Tuple, Union
-import femto
+import femto # My tiny console editor
+
+divider = "_" * 30 # The divider for console output
 
 # note status as Enum for convenience
 class Status(Enum):
@@ -132,6 +134,7 @@ class NoteManager:
         if self.notes_count() > 0:
             self._save_to_json()
 
+    # The deadline check
     def get_urgent_notes_info(self):
         missed_dl = []
         today_dl = []
@@ -142,26 +145,38 @@ class NoteManager:
                 if days < 0:
                     missed_dl.append((note, days))
                 elif days == 0:
-                    today_dl.append((note, days))
+                    today_dl.append(note)
                 elif days == 1:
-                    oneday_dl.append((note, days))
+                    oneday_dl.append(note)
         output_string = ""
         missed_count = len(missed_dl)
         today_count = len(today_dl)
         oneday_count = len(oneday_dl)
         if missed_count > 0:
-            output_string += "Notes with missed deadline: " + str(missed_count) + "\n" + "\n".join(
-                note_info[0].titles[0] + " #" + str(note_info[0].id_) + str(abs(note_info[1])) for note_info in missed_dl
-            ) + "\n"
-        elif today_count > 0:
-            output_string += "Notes which deadline is today: " + str(today_count) + "\n" + "\n".join(
-                note_info[0].titles[0] + " " + str(note_info[0].id_) + str(note_info[1]) for note_info in today_dl
-            ) + "\n"
-        elif oneday_count > 0:
-            output_string += "Notes which deadline is tomorrow: " + str(oneday_count) + "\n" + "\n".join(
-                note_info[0].titles[0] + " " + str(note_info[0].id_) + str(note_info[1]) for note_info in oneday_dl
-            ) + "\n"
-        return output_string, missed_dl + today_dl + oneday_dl
+            output_string += (
+                    "Notes with missed deadline: " + str(missed_count) + "\n"
+                    + "\n".join(note_info[0].titles[0] + " #" + str(note_info[0].id_)
+                                + ", " + str(abs(note_info[1])) + " days after deadline" for note_info in missed_dl)
+            )
+            output_string += "\n"
+        if today_count > 0:
+            output_string += (
+                    "Notes which deadline is today: " + str(today_count) + "\n"
+                    + "\n".join(note_info.titles[0] + " " + str(note_info.id_) for note_info in today_dl) + "\n"
+            )
+        if oneday_count > 0:
+            output_string += (
+                    "Notes which deadline is tomorrow: " + str(oneday_count) + "\n"
+                    + "\n".join(note_info.titles[0] + " " + str(note_info.id_) for note_info in oneday_dl) + "\n"
+            )
+        urg_notes: list[Note] = []
+        for missed in missed_dl:
+            urg_notes.append(missed[0])
+        for today in today_dl:
+            urg_notes.append(today)
+        for oneday in oneday_dl:
+            urg_notes.append(oneday)
+        return output_string, urg_notes
 
     def _is_date_acceptable(self, str_date = "", is_issue_date = False) -> Tuple[bool, Union[datetime, ValueError]]:
         for fmt in self._in_date_fmts:
@@ -236,8 +251,10 @@ class NoteManager:
                             continue
                 break
         self._notes.append(note)
+        self._save_to_json()
         print("\nYour note is successfully saved\n")
 
+    # Search function
     def get_notes_by_keys(self, keys):
         notes_found = set()
         for note in self._notes:
@@ -253,7 +270,7 @@ class NoteManager:
                     notes_found.add(note)
         return notes_found
 
-    def _get_note_idx_by_id(self, id_):
+    def get_note_idx_by_id(self, id_):
         idx = -1
         for i, note in enumerate(self._notes):
             if note.id_ == id_:
@@ -269,7 +286,7 @@ class NoteManager:
                     return
                 else:
                     continue
-            i = self._get_note_idx_by_id(int(note_id))
+            i = self.get_note_idx_by_id(int(note_id))
             if i == -1:
                 print("\nNo such note!")
                 continue
@@ -283,7 +300,7 @@ class NoteManager:
                 "'1' - Note text\n"
                 "'2' - Note state\n"
                 "'3' - Deadline\n"
-                "'4' - delete note\n"
+                "'4' - Delete note\n"
                 "'5' - Return to the main menu\n\n"
                 "Enter the number: "
             )
@@ -294,10 +311,12 @@ class NoteManager:
                         if not username:
                             continue
                         self._notes[i].username = username
+                        self._save_to_json()
                         break
                 case '1':
                     edited_text = curses.wrapper(femto.femto, self._notes[i].content)
                     self._notes[i].content = edited_text
+                    self._save_to_json()
                 case '2':
                     while True:
                         user_input = input("\nSwitch state to: ").lower()
@@ -316,6 +335,7 @@ class NoteManager:
                             case _:
                                 print("Try again")
                                 continue
+                        self._save_to_json()
                         break
                 case '3':
                     while True:
@@ -330,6 +350,7 @@ class NoteManager:
                         else:
                             print("\n", result[1])
                             continue
+                        self._save_to_json()
                         break
                 case '4':
                     self.delete_note(i)
@@ -339,7 +360,7 @@ class NoteManager:
     def __str__(self):
         output_string = ""
         for i, note in enumerate(self._notes):
-            output_string += note.__str__() + ("_" * 30) # Can't concatenate note + str!?
+            output_string += note.__str__() + divider # Can't concatenate note + str!?
         return output_string
 
 # main() function
@@ -354,7 +375,9 @@ def main():
         print(urgent[0])
         choice = input("View this notes? y | n: ")
         if choice == 'y':
-            print(note for note in urgent[1])
+            for urg_note in urgent[1]:
+                print(urg_note)
+                print(divider)
     while True:
         print("\nn - new note")
         print("a - view all notes")
