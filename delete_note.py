@@ -60,7 +60,7 @@ def format_output():
                         key.capitalize()[:-1] + " " + str(x + 1) + ": " + str(t) for x, t in enumerate(value)
                     ) + "\n"
                 case "content":
-                    output_string += "\n" + key.capitalize() + ":" + "\n" + value + "\n\n"
+                    output_string += "\n" + key.capitalize() + ":" + "\n" + value.replace('{{', '').replace('}}', '') + "\n\n"
                 case "status":
                     output_string += key.capitalize() + ": " + value.name + "\n"
                 case "created_date":
