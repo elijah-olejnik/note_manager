@@ -1,5 +1,7 @@
+# This script is the tiniest tui text editor I've called femto
 import curses
 
+# Just in one function
 def femto(stdscr, initial_text = ""):
     stdscr.clear()
     cursor_x = 0
@@ -44,13 +46,3 @@ def femto(stdscr, initial_text = ""):
         # Ensure cursor is within bounds
         cursor_x = min(len(text[cursor_y]), cursor_x)
     return '\n'.join(text)
-
-# My sandbox:
-# def main():
-#     initial_text = "This is a sample string.\nFeel free to edit it!"
-#     edited_text = curses.wrapper(femto, initial_text)
-#     print("Edited text:")
-#     print(edited_text)
-#
-# if __name__ == "__main__":
-#     main()
