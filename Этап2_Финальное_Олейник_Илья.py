@@ -204,7 +204,7 @@ class NoteManager:
                 match i:
                     case 0:
                         note.username = user_input
-                    case 1:
+                    case 1: # TODO: use femto (with usage instructions) instead of lines input
                         while True:
                             new_line = input()
                             if new_line.lower() == "end":
@@ -213,6 +213,7 @@ class NoteManager:
                         headers = re.findall(self._regexp, user_input)
                         if headers:
                             note.titles = headers
+                            # TODO: move this to display logic
                             note.content = re.sub(self._regexp, r'\n\1\n', user_input)
                         else:
                             note.content = user_input
@@ -316,7 +317,7 @@ class NoteManager:
                         self._notes[i].username = username
                         self._save_to_json()
                         break
-                case '1':
+                case '1': # TODO: add femto usage instructions
                     edited_text = curses.wrapper(femto.femto, self._notes[i].content)
                     self._notes[i].content = edited_text
                     self._save_to_json()
