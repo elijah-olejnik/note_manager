@@ -4,25 +4,19 @@ from datetime import datetime
 import json
 import random
 import re
-import readline
 from enum import Enum
 from typing import Tuple, Union
 import femto
 
-
+# note status as Enum for convenience
 class Status(Enum):
     ACTIVE = 0
     COMPLETED = 1
     TERMLESS = 2
     POSTPONED = 3
 
-def prefill_input(prompt, text):
-    readline.set_startup_hook(lambda: readline.insert_text(text))
-    try:
-        return input(prompt)
-    finally:
-        readline.set_startup_hook()
-
+# I think the data class would be better and more extendable
+# but the dictionary functionality remained the same
 @dataclasses.dataclass
 class Note:
     username: str = ""
@@ -70,6 +64,7 @@ class Note:
             if self.status != Status.TERMLESS else "no deadline"}\n"
         )
 
+# Custom JSON encoder for easy datetime and Status(Enum) conversion
 class NoteEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Enum):
@@ -79,6 +74,7 @@ class NoteEncoder(json.JSONEncoder):
         else:
             return obj
 
+# Adn the decoder function
 def note_decoder(obj):
     obj["status"] = Status[obj["status"]]
     obj["created_date"] = datetime.fromisoformat(obj["created_date"])
@@ -88,6 +84,7 @@ def note_decoder(obj):
         pass
     return obj
 
+# NoteManager itself
 class NoteManager:
     _in_date_fmts = ("%d-%m-%Y %H:%M", "%Y-%m-%d %H:%M", "%d.%m.%Y %H:%M", "%d/%m/%Y %H:%M")
     _regexp = r'\{\{(.*?)\}\}'
