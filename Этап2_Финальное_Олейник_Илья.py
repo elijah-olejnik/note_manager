@@ -76,7 +76,7 @@ class NoteEncoder(json.JSONEncoder):
         else:
             return obj
 
-# Adn the decoder function
+# The JSON decoder function
 def note_decoder(obj):
     obj["status"] = Status[obj["status"]]
     obj["created_date"] = datetime.fromisoformat(obj["created_date"])
@@ -122,7 +122,7 @@ class NoteManager:
     def _save_to_json(self):
         export_list = []
         for note in self._notes:
-            export_list.append(note.as_dictionary)
+            export_list.append(note.as_dictionary())
         try:
             with open("notes.json", 'w') as file_:
                 file_.write(json.dumps(export_list, cls=NoteEncoder, indent=4))
@@ -354,6 +354,7 @@ class NoteManager:
                         break
                 case '4':
                     self.delete_note(i)
+                    break
                 case '5':
                     break
 
