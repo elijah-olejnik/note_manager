@@ -6,9 +6,10 @@ import random
 import re
 from enum import Enum
 from typing import Tuple, Union
-import femto # My tiny console editor
+import femto  # My tiny console editor
 
-divider = "_" * 30 # The divider for console output
+divider = "_" * 30  # The divider for console output
+
 
 # note status as Enum for convenience
 class Status(Enum):
@@ -17,19 +18,21 @@ class Status(Enum):
     TERMLESS = 2
     POSTPONED = 3
 
+
 # I think the data class would be better and more extendable
 # but the dictionary functionality remained the same
 @dataclasses.dataclass
 class Note:
+    id_: int = random.randint(10000, 99999)
     username: str = ""
+    titles: list = dataclasses.field(default_factory=list)
     content: str = ""
     status: Status = Status.TERMLESS
-    created_date: datetime.date = dataclasses.field(default_factory=datetime.now)
-    issue_date: datetime.date = dataclasses.field(default_factory=lambda: datetime.min)
-    titles: list = dataclasses.field(default_factory=list)
-    id_: int = random.randint(10000, 99999)
+    created_date: datetime.date = datetime.now()
+    issue_date: datetime.date = datetime.min
 
-    def __init__(self, note_dict = None):
+    def __init__(self, note_dict=None):
+        self.titles = []  # Had to add this because of field doesn't exist error
         if isinstance(note_dict, dict):
             self.add_from_dictionary(note_dict)
 
@@ -58,13 +61,14 @@ class Note:
         return (
             f"\n\nNote ID #{self.id_}\n\n"
             f"Username: {self.username}\n"
-            f"{"\n".join("Title " + str(i+1) + ": " + title for i, title in enumerate(self.titles))}\n"
-            f"Content: \n{self.content}\n\n"
+            f"{"\n".join("Title " + str(i + 1) + ": " + title for i, title in enumerate(self.titles))}\n"
+            f"Content: \n{self.content.replace('{{', '').replace('}}', '')}\n\n"
             f"Status: {self.status.name}\n"
             f"Created: {datetime.strftime(self.created_date, date_display_fmt)}\n"
             f"Deadline: {datetime.strftime(self.issue_date, date_display_fmt)
             if self.status != Status.TERMLESS else "no deadline"}\n"
         )
+
 
 # Custom JSON encoder for easy datetime and Status(Enum) conversion
 class NoteEncoder(json.JSONEncoder):
@@ -76,6 +80,7 @@ class NoteEncoder(json.JSONEncoder):
         else:
             return obj
 
+
 # The JSON decoder function
 def note_decoder(obj):
     obj["status"] = Status[obj["status"]]
@@ -86,10 +91,10 @@ def note_decoder(obj):
         pass
     return obj
 
+
 # NoteManager itself
 class NoteManager:
     _in_date_fmts = ("%d-%m-%Y %H:%M", "%Y-%m-%d %H:%M", "%d.%m.%Y %H:%M", "%d/%m/%Y %H:%M")
-    _regexp = r'\{\{(.*?)\}\}'
     _prompts = (
         'Enter your name', 'Enter your note. If you want to add a title,\nor an additional '
                            'titles/headers within your text,\nuse double curly braces, e.g. {{Some title}}.'
@@ -162,12 +167,12 @@ class NoteManager:
         if today_count > 0:
             output_string += (
                     "Notes which deadline is today: " + str(today_count) + "\n"
-                    + "\n".join(note_info.titles[0] + " " + str(note_info.id_) for note_info in today_dl) + "\n"
+                    + "\n".join(note.titles[0] + " " + str(note.id_) for note in today_dl) + "\n"
             )
         if oneday_count > 0:
             output_string += (
                     "Notes which deadline is tomorrow: " + str(oneday_count) + "\n"
-                    + "\n".join(note_info.titles[0] + " " + str(note_info.id_) for note_info in oneday_dl) + "\n"
+                    + "\n".join(note.titles[0] + " " + str(note.id_) for note in oneday_dl) + "\n"
             )
         urg_notes: list[Note] = []
         for missed in missed_dl:
@@ -178,7 +183,7 @@ class NoteManager:
             urg_notes.append(oneday)
         return output_string, urg_notes
 
-    def _is_date_acceptable(self, str_date = "", is_issue_date = False) -> Tuple[bool, Union[datetime, ValueError]]:
+    def _is_date_acceptable(self, str_date="", is_issue_date=False) -> Tuple[bool, Union[datetime, ValueError]]:
         for fmt in self._in_date_fmts:
             try:
                 date = datetime.strptime(str_date, fmt)
@@ -198,32 +203,26 @@ class NoteManager:
                 user_input = input("\n"
                                    + prompt
                                    + (f" (today is {datetime.strftime(note.created_date, self._in_date_fmts[0])}): "
-                                   if i == 3 else ": "))
+                                      if i == 3 else ": ")) if i != 1 else curses.wrapper(femto.femto)
                 if i < 2 and not user_input:
                     continue
                 match i:
                     case 0:
                         note.username = user_input
-                    case 1: # TODO: use femto (with usage instructions) instead of lines input
-                        while True:
-                            new_line = input()
-                            if new_line.lower() == "end":
-                                break
-                            user_input += "\n" + new_line
-                        headers = re.findall(self._regexp, user_input)
+                    case 1:
+                        note.content = user_input
+                        # TODO: the further code should be a function
+                        headers = re.findall(r'\{\{(.*?)}}', user_input)
                         if headers:
                             note.titles = headers
-                            # TODO: move this to display logic
-                            note.content = re.sub(self._regexp, r'\n\1\n', user_input)
                         else:
-                            note.content = user_input
                             words = user_input.split()
                             if len(words) == 1:
-                                note.titles .append(words[0])
+                                note.titles.append(words[0])
                             elif len(words) == 2:
-                                note.titles .append(" ".join(words[:2]))
+                                note.titles.append(" ".join(words[:2]))
                             else:
-                                note.titles .append(" ".join(words[:3]))
+                                note.titles.append(" ".join(words[:3]))
                     case 2:
                         match user_input:
                             case 'a':
@@ -244,7 +243,7 @@ class NoteManager:
                             elif i == 4:
                                 if result[1] < note.created_date:
                                     print("\nThe deadline date of a note can't be "
-                                                     "earlier than the date it was created!")
+                                          "earlier than the date it was created!")
                                     continue
                                 note.issue_date = result[1]
                         else:
@@ -255,10 +254,10 @@ class NoteManager:
         self._save_to_json()
         print("\nYour note is successfully saved\n")
 
-    # Search function
+    # Search functions
     def get_notes_indexes_by_keys(self, keys):
         notes_found = set()
-        for i, note in enumerate (self._notes):
+        for i, note in enumerate(self._notes):
             for key in keys:
                 if key[0] == " ":
                     ey = key[1:]
@@ -317,9 +316,12 @@ class NoteManager:
                         self._notes[i].username = username
                         self._save_to_json()
                         break
-                case '1': # TODO: add femto usage instructions
+                case '1':
                     edited_text = curses.wrapper(femto.femto, self._notes[i].content)
+                    if not edited_text:
+                        continue
                     self._notes[i].content = edited_text
+                    # TODO: refresh titles here
                     self._save_to_json()
                 case '2':
                     print(
@@ -373,8 +375,9 @@ class NoteManager:
     def __str__(self):
         output_string = ""
         for i, note in enumerate(self._notes):
-            output_string += note.__str__() + divider # Can't concatenate note + str!?
+            output_string += note.__str__() + divider  # Can't concatenate note + str!?
         return output_string
+
 
 # main() function
 def main():
