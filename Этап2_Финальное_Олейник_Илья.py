@@ -92,21 +92,25 @@ def note_decoder(obj):
     return obj
 
 
+# This function extracts marked titles out of the text
+# or make a title from the first words if no marked titles provided
+def _extract_titles(text):
+    headers = re.findall(r'\{\{(.*?)}}', text)
+    if not headers:
+        headers = []
+        words = text.split()
+        if len(words) == 1:
+            headers.append(words[0])
+        elif len(words) == 2:
+            headers.append(" ".join(words[:2]))
+        else:
+            headers.append(" ".join(words[:3]))
+    return headers
+
+
 # NoteManager itself
 class NoteManager:
     _in_date_fmts = ("%d-%m-%Y %H:%M", "%Y-%m-%d %H:%M", "%d.%m.%Y %H:%M", "%d/%m/%Y %H:%M")
-    _prompts = (
-        'Enter your name', 'Enter your note. If you want to add a title,\nor an additional '
-                           'titles/headers within your text,\nuse double curly braces, e.g. {{Some title}}.'
-                           '\nUse Enter key to add a new line,\nor type "end" to finish the note input\n',
-        'Enter the note state: type "a" if ACTIVE, "c" if COMPLETED, "p" if POSTPONED '
-        'or skip pressing Enter if TERMLESS',
-        f'Enter the date and time of note creation or press Enter for auto input\nAcceptable formats:\n'
-        f'{"\n".join(_in_date_fmts)}\n\nCreated',
-        'Enter the date and time of the deadline or press Enter if termless\nAcceptable formats:\n'
-        f'{"\n".join(_in_date_fmts)}\n\nDeadline'
-    )
-
     def __init__(self):
         self._notes = []
         self._load_from_json()
@@ -197,8 +201,19 @@ class NoteManager:
                 return False, e
 
     def add_from_console(self):
+        prompts = (
+            'Enter your name', 'Enter your note. If you want to add a title,\nor an additional '
+                               'titles/headers within your text,\nuse double curly braces, e.g. {{Some title}}.'
+                               '\nUse Enter key to add a new line,\nor type "end" to finish the note input\n',
+            'Enter the note state: type "a" if ACTIVE, "c" if COMPLETED, "p" if POSTPONED '
+            'or skip pressing Enter if TERMLESS',
+            f'Enter the date and time of note creation or press Enter for auto input\nAcceptable formats:\n'
+            f'{"\n".join(self._in_date_fmts)}\n\nCreated',
+            'Enter the date and time of the deadline or press Enter if termless\nAcceptable formats:\n'
+            f'{"\n".join(self._in_date_fmts)}\n\nDeadline'
+        )
         note = Note()
-        for i, prompt in enumerate(self._prompts):
+        for i, prompt in enumerate(prompts):
             while True:
                 user_input = input("\n"
                                    + prompt
@@ -211,18 +226,7 @@ class NoteManager:
                         note.username = user_input
                     case 1:
                         note.content = user_input
-                        # TODO: the further code should be a function
-                        headers = re.findall(r'\{\{(.*?)}}', user_input)
-                        if headers:
-                            note.titles = headers
-                        else:
-                            words = user_input.split()
-                            if len(words) == 1:
-                                note.titles.append(words[0])
-                            elif len(words) == 2:
-                                note.titles.append(" ".join(words[:2]))
-                            else:
-                                note.titles.append(" ".join(words[:3]))
+                        note.titles = _extract_titles(user_input)
                     case 2:
                         match user_input:
                             case 'a':
@@ -321,7 +325,7 @@ class NoteManager:
                     if not edited_text:
                         continue
                     self._notes[i].content = edited_text
-                    # TODO: refresh titles here
+                    self._notes[i].titles = _extract_titles(edited_text)
                     self._save_to_json()
                 case '2':
                     print(
@@ -375,7 +379,7 @@ class NoteManager:
     def __str__(self):
         output_string = ""
         for i, note in enumerate(self._notes):
-            output_string += note.__str__() + divider  # Can't concatenate note + str!?
+            output_string += note.__str__() + divider  # Can't concatenate note + str!? WTF?
         return output_string
 
 
