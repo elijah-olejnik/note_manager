@@ -1,59 +1,91 @@
-# TODO: Refactor this code from previous tasks to match the new task
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Tuple, Union
+import curses
+import femto
+
+
+class Status(Enum):
+    ACTIVE = 0
+    COMPLETED = 1
+    POSTPONED = 2
+
+
+date_fmts = ("%d-%m-%Y", "%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y")
+
+
+def is_date_acceptable(str_date="") -> Tuple[bool, Union[datetime, ValueError]]:
+    for fmt in date_fmts:
+        try:
+            date = datetime.strptime(str_date, fmt)
+            if date < datetime.now():
+                raise ValueError("The deadline can be only in the future. Try Again.")
+            return True, date
+        except ValueError as e:
+            return False, e
+
 
 def create_note():
-    prompts = (
-        'Enter your name', 'Enter your note. If you want to add a title,\nor an additional '
-                           'titles/headers within your text,\nuse double curly braces, e.g. {{Some title}}.'
-                           '\nUse Enter key to add a new line,\nor type "end" to finish the note input\n',
-        'Enter the note state: type "a" if ACTIVE, "c" if COMPLETED, "p" if POSTPONED '
-        'or skip pressing Enter if TERMLESS',
-        f'Enter the date and time of note creation or press Enter for auto input\nAcceptable formats:\n'
-        f'{"\n".join(self._in_date_fmts)}\n\nCreated',
-        'Enter the date and time of the deadline or press Enter if termless\nAcceptable formats:\n'
-        f'{"\n".join(self._in_date_fmts)}\n\nDeadline'
-    )
-    note = {}
-    for i, prompt in enumerate(prompts):
+    note = {
+        "username" : ["", "Enter your name: "],
+        "title" : ["", "Enter the note title: "],
+        "content" : "",
+        "status" : [
+            Status.ACTIVE,
+            "Enter the note state\n"
+            "'0' for ACTIVE\n"
+            "'1' for COMPLETED\n"
+            "'2' for POSTPONED\n"
+            "Status: "
+        ],
+        "created_date" : datetime.now(),
+        "issue_date" : [
+            datetime.now() + timedelta(weeks=1),
+            "Enter the deadline date (dd-mm-yyyy)\n"
+            "or press Enter to leave the default value (1 week): "
+        ]
+    }
+    for key, value in note.items():
+        if key == "created_date":
+            continue
         while True:
-            user_input = input("\n"
-                               + prompt
-                               + (f" (today is {datetime.strftime(note.created_date, self._in_date_fmts[0])}): "
-                                  if i == 3 else ": ")) if i != 1 else curses.wrapper(femto.femto)
-            if i < 2 and not user_input:
-                continue
-            match i:
-                case 0:
-                    note.username = user_input
-                case 1:
-                    note.content = user_input
-                    note.titles = _extract_titles(user_input)
-                case 2:
-                    match user_input:
-                        case 'a':
-                            note.status = Status.ACTIVE
-                        case 'c':
-                            note.status = Status.COMPLETED
-                        case 'p':
-                            note.status = Status.POSTPONED
-                        case _:
-                            note.status = Status.TERMLESS
-                case _:
-                    if not user_input:
-                        break
-                    result = self._is_date_acceptable(user_input, i == 4)
-                    if result[0]:
-                        if i == 3:
-                            note.created_date = result[1]
-                        elif i == 4:
-                            if result[1] < note.created_date:
-                                print("\nThe deadline date of a note can't be "
-                                      "earlier than the date it was created!")
-                                continue
-                            note.issue_date = result[1]
-                    else:
-                        print("\n", result[1])
-                        continue
+            user_input = input(value[1]) if key != "content" else curses.wrapper(femto.femto)
+            if key == "status":
+                if user_input not in ('0', '1', '2'):
+                    print("\nIncorrect input. Try again.\n")
+                    continue
+                note[key] = Status(int(user_input))
+            elif key == "issue_date":
+                result = value[0]
+                if not user_input:
+                    note[key] = result
+                    break
+                result = is_date_acceptable(user_input)
+                if not result[0]:
+                    print("\n", result[1], "\n")
+                    continue
+                note[key] = result[1]
+            else:
+                if not user_input:
+                    continue
+                note[key] = user_input
             break
-    self._notes.append(note)
-    self._save_to_json()
-    print("\nYour note is successfully saved\n")
+    return note
+
+
+def main():
+    while True:
+        command = input("\nCreate note? (y|n): ")
+        if command == 'y':
+            result = create_note()
+            print("\nNote created:", result)
+        elif command == 'n':
+            print("\nQuitting...")
+        else:
+            continue
+        break
+    return 0
+
+
+if __name__ == "__main__":
+    main()
