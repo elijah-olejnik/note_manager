@@ -67,4 +67,9 @@
     The program loads pre-saved notes from notes.json and asks the user to delete one or
     multiple notes by the keyword (it can be a username or a note title)
 #### Этап2_Финальное_Олейник_Илья.py
-    Testing stage...
+    This is the compilation of all previous stages. Also I created a tiny terminal text editor
+    called "femto" to make note text editing more convenient. Use Terminal emulation to get
+    "femto" editor working
+### Stage 3
+#### create_note_function
+    Just another effort to make my adding function more elegant
