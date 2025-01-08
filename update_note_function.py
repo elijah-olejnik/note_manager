@@ -4,6 +4,8 @@ from datetime import datetime
 from enum import Enum
 import femto
 
+date_fmts = ("%d-%m-%Y", "%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y")
+
 
 # input type as Enum for convenience
 class InputType(Enum):
@@ -43,9 +45,20 @@ def load_from_json() -> dict:
             return import_list[0]
     except (OSError, ValueError) as e:
         print("\nCouldn't open/read notes.json:", e)
+        
+
+def str_to_date(str_date="") -> Tuple[bool, Union[datetime, ValueError]]:
+    for fmt in date_fmts:
+        try:
+            date = datetime.strptime(str_date, fmt)
+            if date < datetime.now():
+                raise ValueError("\nThe deadline can be only in the future. Try Again.\n")
+            return True, date
+        except ValueError as e:
+            return False, e
 
 
-def get_value_from_console(prompt, input_type, enum_ = Status):
+def get_value_from_console(input_type, prompt = "", enum_ = Status):
     while True:
         user_input = input(prompt) if input_type != InputType.TEXT else curses.wrapper(femto.femto)
         if input_type == InputType.ENUM_VALUE:
@@ -62,7 +75,11 @@ def get_value_from_console(prompt, input_type, enum_ = Status):
                     continue
                 return enum_(0)
         elif input_type == InputType.DATE:
-            pass # TODO
+            date = str_to_date(user_input)
+            if not date[0]:
+                print(date[1])
+                continue
+            return date[1]
         else:
             if not user_input:
                 display_error_message()
@@ -83,4 +100,28 @@ def update_note(note):
         command = input("\nEnter your choice: ")
         match command:
             case '1':
-                pass # TODO
+                note["username"] = get_value_from_console("Enter new username: ", InputType.STRING)
+            case '2':
+                note["title"] = get_value_from_console("Enter new title: ", InputType.STRING)
+            case '3':
+                note["content"] = get_value_from_console(InputType.TEXT)
+            case '4':
+                print(
+                    "Choose the new note state:\n"
+                    "0 or active\n"
+                    "1 or completed\n"
+                    "2 or termless\n"
+                    "3 or postponed\n"
+                )
+                note["status"] = get_value_from_console("\nEnter a word or a number: ", InputType.ENUM_VALUE)
+            case '5':
+                note["issue_date"] = get_value_from_console("Enter new deadline date: ", InputType.DATE)
+            case _:
+                display_error_message()
+                continue
+        break
+        
+        
+def main():
+    note = load_from_json()
+    print(note)
