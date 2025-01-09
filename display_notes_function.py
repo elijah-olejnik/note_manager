@@ -56,8 +56,8 @@ def display_notes(notes_list, params = None):
     if len(notes_list) < 1:
         print("No notes yet\n")
     else:
-        notes_sorted = sorted(notes_list, key=lambda x: x["created_date"], reverse=True) if params[1] == 'c' else (
-            sorted(notes_list, key=lambda x: (x["issue_date"] == datetime.min, x["issue_date"])))
+        notes_sorted = sorted(notes_list, key=lambda x: x["created_date"]) if params[1] == 'c' else (
+            sorted(notes_list, key=lambda x: (x["issue_date"] == datetime.min, x["issue_date"]), reverse=True))
         for n in notes_sorted:
             display_note_full(n) if params[0] == 'y' else display_note_short(n)
             print("-" * 30)
