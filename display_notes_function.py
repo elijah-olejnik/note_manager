@@ -35,8 +35,7 @@ def load_from_json():
         return []
 
 
-def display_note(note):
-    colorama.init(autoreset=True)
+def display_note_full(note):
     date_display_fmt: str = "%B %d, %Y %H:%M"
     print (
         f"\n\n{Fore.CYAN}Note ID #{Style.RESET_ALL}{note["id"]}\n\n"
@@ -49,24 +48,29 @@ def display_note(note):
         if note["status"] != Status.TERMLESS else "no deadline"}\n"
     )
 
+def display_note_short(note):
+    print (f"{Fore.CYAN}Note ID #{Style.RESET_ALL}{note["id"]}: {note["titles"][0]}\n\n")
 
-def display_notes(notes_list):
+
+def display_notes(notes_list, display_short = True):
     if len(notes_list) < 1:
         print("No notes yet\n")
     else:
         for n in notes_list:
-            display_note(n)
+            display_note_full(n) if not display_short else display_note_short(n)
             print("-" * 30)
 
 
 def main():
     notes = []
+    colorama.init(autoreset=True)
     display_notes(notes)
     decision = input("Load from JSON? y|n: ")
     if decision != 'y':
         print("quitting...")
         sys.exit(0)
-    display_notes(load_from_json())
+    decision = input("Display all note data? y|n: ")
+    display_notes(load_from_json(), False if decision == 'y' else True)
     return 0
 
 
