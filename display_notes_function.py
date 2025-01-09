@@ -52,12 +52,14 @@ def display_note_short(note):
     print (f"{Fore.CYAN}Note ID #{Style.RESET_ALL}{note["id"]}: {note["titles"][0]}\n\n")
 
 
-def display_notes(notes_list, display_short = True):
+def display_notes(notes_list, params = None):
     if len(notes_list) < 1:
         print("No notes yet\n")
     else:
-        for n in notes_list:
-            display_note_full(n) if not display_short else display_note_short(n)
+        notes_sorted = sorted(notes_list, key=lambda x: x["created_date"], reverse=True) if params[1] == 'c' else (
+            sorted(notes_list, key=lambda x: (x["issue_date"] == datetime.min, x["issue_date"])))
+        for n in notes_sorted:
+            display_note_full(n) if params[0] == 'y' else display_note_short(n)
             print("-" * 30)
 
 
@@ -69,8 +71,13 @@ def main():
     if decision != 'y':
         print("quitting...")
         sys.exit(0)
-    decision = input("Display all note data? y|n: ")
-    display_notes(load_from_json(), False if decision == 'y' else True)
+    print("Choose parameters:\nDisplay all note data? y|n\nSort by creation date or deadline? c|d")
+    while True:
+        params = input("Enter parameters separated by ; e.g.: y;c: ").split(';')
+        if params[0] not in ('y','n') or params[1] not in ('c','d'):
+            continue
+        display_notes(load_from_json(), params)
+        break
     return 0
 
 

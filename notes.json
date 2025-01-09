@@ -19,7 +19,7 @@
         "content": "{{My weekday}}\n\nWoke up, watched through the window, ate, walked and barked on everything",
         "status": "TERMLESS",
         "created_date": "2025-01-02T02:43:32.383806",
-        "issue_date": "Termless"
+        "issue_date": "0001-01-01T00:00:00"
     },
     {
         "id": 75240,
@@ -31,7 +31,7 @@
         "content": "{{Movies I like}}\n\nGrinch, Harry Potter, Taxi, Asterix & Obelix\n\n{{Movies I don't like}}\n\nThe Matrix, Blade, Begotten, Sex And The City",
         "status": "TERMLESS",
         "created_date": "2025-01-02T02:50:12.214543",
-        "issue_date": "Termless"
+        "issue_date": "0001-01-01T00:00:00"
     },
     {
         "id": 15114,
