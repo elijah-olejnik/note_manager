@@ -2,6 +2,7 @@ import curses
 import json
 from datetime import datetime
 from enum import Enum
+from typing import Tuple, Union
 import femto
 
 date_fmts = ("%d-%m-%Y", "%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y")
@@ -25,6 +26,17 @@ class Status(Enum):
 
 def display_error_message(msg = ""):
     print("\nIncorrect input. Try again\n" if not msg else msg)
+
+
+def user_confirmation():
+    while True:
+        user_input = input("Are you sure? y|n: ")
+        if user_input == 'y':
+            return True
+        elif user_input == 'n':
+            return False
+        else:
+            pass
 
 
 # The JSON decoder function
@@ -60,7 +72,7 @@ def str_to_date(str_date="") -> Tuple[bool, Union[datetime, ValueError]]:
 
 def get_value_from_console(input_type, prompt = "", enum_ = Status):
     while True:
-        user_input = input(prompt) if input_type != InputType.TEXT else curses.wrapper(femto.femto)
+        user_input = input(prompt) if input_type != InputType.TEXT else curses.wrapper(femto.femto, prompt)
         if input_type == InputType.ENUM_VALUE:
             if not user_input.isdigit():
                 name = user_input.upper()
@@ -90,21 +102,34 @@ def get_value_from_console(input_type, prompt = "", enum_ = Status):
 def update_note(note):
     while True:
         print(
-            "\nChoose what to update:\n"
+            "\nChoose what to update or quit program:\n"
             "1 - Username\n"
             "2 - Title\n"
             "3 - Content\n"
             "4 - Status\n"
             "5 - Deadline\n"
+            "6 - Quit"
         )
         command = input("\nEnter your choice: ")
         match command:
             case '1':
-                note["username"] = get_value_from_console("Enter new username: ", InputType.STRING)
+                input_value = get_value_from_console(InputType.STRING, "Enter new username: ")
+                if not user_confirmation():
+                    continue
+                note["username"] = input_value
+                print("Note updated:\n\n", note)
             case '2':
-                note["title"] = get_value_from_console("Enter new title: ", InputType.STRING)
+                input_value = get_value_from_console(InputType.STRING, "Enter new title: ")
+                if not user_confirmation():
+                    continue
+                note["title"] = input_value
+                print("Note updated:\n\n", note)
             case '3':
-                note["content"] = get_value_from_console(InputType.TEXT)
+                input_value = get_value_from_console(InputType.TEXT, note["content"])
+                if not user_confirmation():
+                    continue
+                note["content"] = input_value
+                print("Note updated:\n\n", note)
             case '4':
                 print(
                     "Choose the new note state:\n"
@@ -113,15 +138,29 @@ def update_note(note):
                     "2 or termless\n"
                     "3 or postponed\n"
                 )
-                note["status"] = get_value_from_console("\nEnter a word or a number: ", InputType.ENUM_VALUE)
+                input_value = get_value_from_console(InputType.ENUM_VALUE, "\nEnter a word or a number: ")
+                if not user_confirmation():
+                    continue
+                note["status"] = input_value
+                print("Note updated:\n\n", note)
             case '5':
-                note["issue_date"] = get_value_from_console("Enter new deadline date: ", InputType.DATE)
+                input_value = get_value_from_console(InputType.DATE, "Enter new deadline date: ")
+                if not user_confirmation():
+                    continue
+                note["issue_date"] = input_value
+                print("Note updated:\n\n", note)
+            case '6':
+                break
             case _:
                 display_error_message()
-                continue
-        break
         
         
 def main():
     note = load_from_json()
-    print(note)
+    print("The current note:\n\n", note)
+    update_note(note)
+    return 0
+
+
+if __name__ == "__main__":
+    main()
