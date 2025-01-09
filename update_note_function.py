@@ -81,11 +81,11 @@ def get_value_from_console(input_type, prompt = "", enum_ = Status):
                     continue
                 return enum_[name]
             else:
-                value = str(user_input)
+                value = int(user_input)
                 if value not in (item.value for item in enum_):
                     display_error_message()
                     continue
-                return enum_(0)
+                return enum_(value)
         elif input_type == InputType.DATE:
             date = str_to_date(user_input)
             if not date[0]:
