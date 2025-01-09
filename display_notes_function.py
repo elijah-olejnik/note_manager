@@ -36,31 +36,62 @@ def load_from_json():
 
 
 def display_note_full(note):
-    date_display_fmt: str = "%B %d, %Y %H:%M"
-    print (
-        f"\n\n{Fore.CYAN}Note ID #{Style.RESET_ALL}{note["id"]}\n\n"
-        f"{Fore.GREEN}Username: {Style.RESET_ALL}{note["username"]}\n"
-        f"{"\n".join(Fore.YELLOW + "Title " + str(i + 1) + ": " + Style.RESET_ALL + title for i, title in enumerate(note["titles"]))}\n"
-        f"{Fore.MAGENTA}Content: \n{Style.RESET_ALL}{note["content"].replace('{{', '').replace('}}', '')}\n\n"
-        f"{Fore.BLUE}Status: {Style.RESET_ALL}{note["status"].name}\n"
-        f"{Fore.RED}Created: {Style.RESET_ALL}{datetime.strftime(note["created_date"], date_display_fmt)}\n"
-        f"{Fore.RED}Deadline: {Style.RESET_ALL}{datetime.strftime(note["issue_date"], date_display_fmt)
-        if note["status"] != Status.TERMLESS else "no deadline"}\n"
-    )
+    row_format = "{:<20} | {:<60}"
+    print("-" * 77)
+    print(row_format.format(Fore.CYAN + "Note ID" + Style.RESET_ALL, note["id"]))
+    print(row_format.format(Fore.GREEN + "Username" + Style.RESET_ALL, note["username"]))
+    for i, title in enumerate(note["titles"]):
+        print(row_format.format(f"{Fore.YELLOW}Title {i}{Style.RESET_ALL}", title))
+    content = "\n" + note["content"].replace("{{", "").replace("}}", "")
+    print(row_format.format(Fore.MAGENTA + "Content" + Style.RESET_ALL, content))
+    print(row_format.format(Fore.BLUE + "Status" + Style.RESET_ALL, note["status"].name))
+    date_display_fmt = "%B %d, %Y %H:%M"
+    created = datetime.strftime(note["created_date"], date_display_fmt)
+    print(row_format.format(Fore.RED + "Created" + Style.RESET_ALL, created))
+    if note["status"] != Status.TERMLESS:
+        deadline = datetime.strftime(note["issue_date"], date_display_fmt)
+    else:
+        deadline = Status.TERMLESS.name
+    print(row_format.format(Fore.RED + "Deadline" + Style.RESET_ALL, deadline))
+    print("-" * 77)
+
 
 def display_note_short(note):
     print (f"{Fore.CYAN}Note ID #{Style.RESET_ALL}{note["id"]}: {note["titles"][0]}\n\n")
 
 
-def display_notes(notes_list, params = None):
+def display_notes(notes_list, params=None, per_page=3):
     if len(notes_list) < 1:
         print("No notes yet\n")
-    else:
-        notes_sorted = sorted(notes_list, key=lambda x: x["created_date"]) if params[1] == 'c' else (
-            sorted(notes_list, key=lambda x: (x["issue_date"] == datetime.min, x["issue_date"]), reverse=True))
-        for n in notes_sorted:
+        return
+    notes_sorted = sorted(notes_list, key=lambda x: x["created_date"]) if params[1] == 'c' else (
+        sorted(notes_list, key=lambda x: (x["issue_date"] == datetime.min, x["issue_date"]), reverse=True)
+    )
+    total_notes = len(notes_sorted)
+    page = 0
+    while True:
+        start_index = page * per_page
+        end_index = start_index + per_page
+        notes_to_display = notes_sorted[start_index:end_index]
+        for n in notes_to_display:
             display_note_full(n) if params[0] == 'y' else display_note_short(n)
-            print("-" * 30)
+        print(f"Page {page + 1} of {(total_notes + per_page - 1) // per_page}")
+        print("n - next page, p - previous page, q - quit")
+        choice = input("Enter choice: ").lower()
+        if choice == 'n':
+            if end_index < total_notes:
+                page += 1
+            else:
+                print("You are on the last page.")
+        elif choice == 'p':
+            if start_index > 0:
+                page -= 1
+            else:
+                print("You are on the first page.")
+        elif choice == 'q':
+            break
+        else:
+            print("Invalid choice. Please enter 'n', 'p', or 'q'.")
 
 
 def main():
