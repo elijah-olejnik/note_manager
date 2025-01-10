@@ -103,5 +103,32 @@ def search_notes(notes, keys=None, state=None):
     return [notes[i] for i in notes_indexes]
 
 
-def main(): # TODO terminal logic
+def main():
     colorama.init(autoreset=True)
+    notes = load_from_json()
+    print(notes)
+    while True:
+        command = input(
+            """
+            Search by:\n
+            s - state\n
+            k - keywords\n
+            m - both\n
+            q - quit\n
+            Enter your command: 
+            """
+        )
+        match command:
+            case 's':
+                user_input = input(
+                    """
+                    Choose the note state:\n
+                    0 - for active
+                    1 - for completed
+                    2 - for termless
+                    3 - for postponed
+                    """
+                )
+                # TODO: finish the freaking code!!!
+            case _:
+                continue
