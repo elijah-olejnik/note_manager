@@ -106,29 +106,33 @@ def search_notes(notes, keys=None, state=None):
 def main():
     colorama.init(autoreset=True)
     notes = load_from_json()
-    print(notes)
+    print("\n", notes)
     while True:
         command = input(
-            """
-            Search by:\n
-            s - state\n
-            k - keywords\n
-            m - both\n
-            q - quit\n
-            Enter your command: 
-            """
+            "\nSearch by:\n"
+            "s - state\n"
+            "k - keywords\n"
+            "m - both\n"
+            "q - quit\n"
+            "Enter your command: "
         )
-        match command:
-            case 's':
-                user_input = input(
-                    """
-                    Choose the note state:\n
-                    0 - for active
-                    1 - for completed
-                    2 - for termless
-                    3 - for postponed
-                    """
-                )
-                # TODO: finish the freaking code!!!
-            case _:
-                continue
+        if command == 'q':
+            break
+        if command in ('s', 'm'):
+            user_input = input(
+                "Choose the note state:\n"
+                "0 - for active\n"
+                "1 - for completed\n"
+                "2 - for termless\n"
+                "3 - for postponed\n"
+                "Enter the number: "
+            )
+        if command in ('k', 'm'):
+            user_input = input("Enter keywords, separated by ; : ")
+        else:
+            continue
+        break
+
+
+if __name__ == "__main__":
+    main()
