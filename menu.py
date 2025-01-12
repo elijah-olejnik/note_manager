@@ -6,6 +6,7 @@ import curses
 import femto
 import json
 import colorama
+import re
 
 
 date_fmts = ("%d-%m-%Y", "%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y")
@@ -79,7 +80,7 @@ def str_to_deadline(str_date):
     for fmt in date_fmts:
         try:
             date = datetime.strptime(str_date, fmt)
-            if date < (datetime.now() + timedelta(days=1)):
+            if date < (datetime.now()):
                 raise ValueError("The deadline can be only in the future.")
             return date
         except ValueError as err:
@@ -109,43 +110,56 @@ def get_value_from_console(input_type, prompt = "", enum_ = None):
                 case _:
                     return user_input
         except (KeyError, ValueError) as e:
-            print('\n', e)
+            print('\n', e, '\n')
+
+
+def extract_titles(text):
+    headers = re.findall(r'\{\{(.*?)}}', text)
+    if not headers:
+        headers = []
+        words = text.split()
+        if len(words) == 1:
+            headers.append(words[0])
+        elif len(words) == 2:
+            headers.append(" ".join(words[:2]))
+        else:
+            headers.append(" ".join(words[:3]))
+    return headers
 
 
 def create_note(notes):
     note = {
         "id" : random.randint(10000, 99999),
-        "username" : ["", "Enter your name: "],
-        "title" : ["", "Enter the note title: "],
+        "username" : "Enter your name: ",
+        "titles" : "Enter the note title: ",
         "content" : "",
-        "status" : [
-            Status.TERMLESS,
+        "status" :
             "Enter the note state\n"
             "0 or active\n"
             "1 or completed\n"
             "2 or postponed\n"
             "3 or termless\n\n"
-            "State: "
-        ],
+            "State: ",
         "created_date" : datetime.now(),
-        "issue_date" : [
-            datetime.min,
+        "issue_date" :
             "Enter the deadline date (dd-mm-yyyy)\n"
             "or press Enter to leave the default value (1 week): "
-        ]
     }
     for key, value in note.items():
         match key:
             case "id" | "created_date":
                 continue
+            case "titles":
+                note[key] = [get_value_from_console(InputType.STR, value)]
             case "content":
                 note[key] = get_value_from_console(InputType.TEXT)
+                note["titles"] += extract_titles(note[key])
             case "status":
-                note[key] = get_value_from_console(InputType.ENUM_VAL, value[1], Status)
+                note[key] = get_value_from_console(InputType.ENUM_VAL, value, Status)
             case "issue_date":
-                note[key] = get_value_from_console(InputType.DATE, value[1])
+                note[key] = get_value_from_console(InputType.DATE, value)
             case _:
-                note[key] = get_value_from_console(InputType.STR, value[1])
+                note[key] = get_value_from_console(InputType.STR, value)
     notes.append(note)
     save_to_json(notes)
     print("\nNote created:\n")
@@ -174,12 +188,14 @@ def update_note(notes, i):
                 input_value = get_value_from_console(InputType.STR, "Enter new title: ")
                 if not user_confirmation():
                     continue
-                notes[i]["title"] = input_value
+                notes[i]["titles"][0] = input_value
             case 3:
                 input_value = get_value_from_console(InputType.TEXT, notes[i]["content"])
                 if not user_confirmation():
                     continue
                 notes[i]["content"] = input_value
+                del notes[i]["titles"][1:]
+                notes[i]["titles"] += extract_titles(input_value)
             case 4:
                 print(
                     "Choose the new note state:\n"
@@ -212,7 +228,7 @@ def display_note_full(note):
     print(row_format.format(Fore.CYAN + "Note ID" + Style.RESET_ALL, note["id"]))
     print(row_format.format(Fore.GREEN + "Username" + Style.RESET_ALL, note["username"]))
     for i, title in enumerate(note["titles"]):
-        print(row_format.format(f"{Fore.YELLOW}Title {i}{Style.RESET_ALL}", title))
+        print(row_format.format(f"{Fore.YELLOW}Title {i + 1}{Style.RESET_ALL}", title))
     content = "\n" + note["content"].replace("{{", "").replace("}}", "")
     print(row_format.format(Fore.MAGENTA + "Content" + Style.RESET_ALL, content))
     print(row_format.format(Fore.BLUE + "Status" + Style.RESET_ALL, note["status"].name))
@@ -325,8 +341,8 @@ def main_menu(notes):
                         break
                 case 3:
                     while True:
-                        note_id = get_value_from_console(InputType.INT, "Enter the note ID to edit: ")
-                        found = search_notes(notes, note_id)
+                        note_id = get_value_from_console(InputType.STR, "Enter the note ID to edit: ")
+                        found = search_notes(notes, [note_id])
                         if len(found) < 1:
                             print(f"\nNo notes found by ID #{note_id}.\n")
                             continue
@@ -334,12 +350,14 @@ def main_menu(notes):
                         break
                 case 4:
                     while True:
-                        note_id = get_value_from_console(InputType.INT, "Enter the note ID to delete: ")
-                        found = search_notes(notes, note_id)
+                        note_id = get_value_from_console(InputType.STR, "Enter the note ID to delete: ")
+                        found = search_notes(notes, [note_id])
                         if len(found) < 1:
                             print(f"\nNo notes found by ID #{note_id}.\n")
                             continue
                         del notes[found[0]]
+                        save_to_json(notes)
+                        print("\nThe note is successfully deleted.\n")
                         break
                 case 5:
                     while True:
