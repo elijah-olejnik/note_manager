@@ -1,6 +1,4 @@
-import json
 import random
-import re
 import curses
 import femto  # My tiny console editor
 import dataclasses
@@ -332,7 +330,7 @@ class InputType(Enum):
 
 
 class TerminalInterface:
-
+    @staticmethod
     def user_confirmation():
         while True:
             user_input = input("Are you sure? y|n: ")
