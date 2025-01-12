@@ -64,13 +64,10 @@ def load_from_json(file_str = "notes.json"):
         return []
 
 
-def save_to_json(self):
-    export_list = []
-    for note in self._notes:
-        export_list.append(note.as_dictionary())
+def save_to_json(notes):
     try:
         with open("notes.json", 'w') as file_:
-            file_.write(json.dumps(export_list, cls=NoteEncoder, indent=4))
+            file_.write(json.dumps(notes, cls=NoteEncoder, indent=4))
     except (ValueError, OSError) as e:
         print("The note manager can't save changes:", e)
 
@@ -99,7 +96,7 @@ def get_value_from_console(input_type, prompt = "", enum_ = None):
                 continue
             match input_type:
                 case InputType.INT:
-                    return int(input_type)
+                    return int(user_input)
                 case InputType.ENUM_VAL:
                     if not user_input.isdigit():
                         name = user_input.upper()
@@ -115,7 +112,7 @@ def get_value_from_console(input_type, prompt = "", enum_ = None):
             print('\n', e)
 
 
-def create_note():
+def create_note(notes):
     note = {
         "id" : random.randint(10000, 99999),
         "username" : ["", "Enter your name: "],
@@ -149,10 +146,13 @@ def create_note():
                 note[key] = get_value_from_console(InputType.DATE, value[1])
             case _:
                 note[key] = get_value_from_console(InputType.STR, value[1])
-    return note
+    notes.append(note)
+    save_to_json(notes)
+    print("\nNote created:\n")
+    display_note_full(note)
 
 
-def update_note(note):
+def update_note(notes, i):
     while True:
         print(
             "\nChoose what to update or quit program:\n"
@@ -169,43 +169,41 @@ def update_note(note):
                 input_value = get_value_from_console(InputType.STR, "Enter new username: ")
                 if not user_confirmation():
                     continue
-                note["username"] = input_value
-                print("Note updated:\n\n", note)
+                notes[i]["username"] = input_value
             case 2:
                 input_value = get_value_from_console(InputType.STR, "Enter new title: ")
                 if not user_confirmation():
                     continue
-                note["title"] = input_value
-                print("Note updated:\n\n", note)
+                notes[i]["title"] = input_value
             case 3:
-                input_value = get_value_from_console(InputType.TEXT, note["content"])
+                input_value = get_value_from_console(InputType.TEXT, notes[i]["content"])
                 if not user_confirmation():
                     continue
-                note["content"] = input_value
-                print("Note updated:\n\n", note)
+                notes[i]["content"] = input_value
             case 4:
                 print(
                     "Choose the new note state:\n"
                     "0 or active\n"
                     "1 or completed\n"
-                    "2 or termless\n"
-                    "3 or postponed\n"
+                    "2 or postponed\n"
+                    "3 or termless\n"
                 )
                 input_value = get_value_from_console(InputType.ENUM_VAL, "\nEnter a word or a number: ")
                 if not user_confirmation():
                     continue
-                note["status"] = input_value
-                print("Note updated:\n\n", note)
+                notes[i]["status"] = input_value
             case 5:
                 input_value = get_value_from_console(InputType.DATE, "Enter new deadline date: ")
                 if not user_confirmation():
                     continue
-                note["issue_date"] = input_value
-                print("Note updated:\n\n", note)
+                notes[i]["issue_date"] = input_value
             case 6:
                 break
             case _:
-                pass
+                continue
+        save_to_json(notes)
+        print("Note updated:\n")
+        display_note_full(notes[i])
 
 
 def display_note_full(note):
@@ -271,8 +269,8 @@ def search_notes(notes, keys=None, state=None):
     if not notes:
         print("No notes yet!")
         return []
-    filtered_notes = []
-    for note in notes:
+    filtered_indexes = []
+    for i, note in enumerate(notes):
         status_match = (state is None or note["status"] == state)
         keyword_match = False
         if keys:
@@ -287,11 +285,11 @@ def search_notes(notes, keys=None, state=None):
         else:
             keyword_match = True
         if status_match and keyword_match:
-            filtered_notes.append(note)
-    return filtered_notes
+            filtered_indexes.append(i)
+    return filtered_indexes
 
 
-def main_menu():
+def main_menu(notes):
     while True:
         print(
             "\nMain menu:\n"
@@ -304,17 +302,82 @@ def main_menu():
         )
         try:
             choice = get_value_from_console(InputType.INT, "Enter your choice: ")
-            match choice: # TODO: finish the job
+            match choice:
                 case 1:
-                    print(create_note())
+                    create_note(notes)
                 case 2:
-                    pass
+                    print(
+                        "Display all note data? y|n\n"
+                        "Sort by creation date or deadline? c|d\n"
+                    )
+                    while True:
+                        params = (get_value_from_console(
+                            InputType.STR,
+                            "Enter parameters separated by ;\n"
+                            "e.g.: y;c\n"
+                            "or enter b to get back to the main menu: "
+                        ).split(';'))
+                        if params[0] == 'b':
+                            break
+                        elif params[0] not in ('y', 'n') or params[1] not in ('c', 'd'):
+                            continue
+                        display_notes(notes, params)
+                        break
                 case 3:
-                    pass
+                    while True:
+                        note_id = get_value_from_console(InputType.INT, "Enter the note ID to edit: ")
+                        found = search_notes(notes, note_id)
+                        if len(found) < 1:
+                            print(f"\nNo notes found by ID #{note_id}.\n")
+                            continue
+                        update_note(notes, found[0])
+                        break
                 case 4:
-                    pass
+                    while True:
+                        note_id = get_value_from_console(InputType.INT, "Enter the note ID to delete: ")
+                        found = search_notes(notes, note_id)
+                        if len(found) < 1:
+                            print(f"\nNo notes found by ID #{note_id}.\n")
+                            continue
+                        del notes[found[0]]
+                        break
                 case 5:
-                    pass
+                    while True:
+                        command = get_value_from_console(
+                            InputType.INT,
+                            "\nSearch by:\n"
+                            "1 - state\n"
+                            "2 - keywords\n"
+                            "3 - both\n"
+                            "4 - Back to the main menu\n\n"
+                            "Enter your choice: "
+                        )
+                        if command == 4:
+                            break
+                        keywords = None
+                        if command in (2, 3):
+                            keywords = [key.strip().lower() for key in
+                                        input("Enter keywords, separated by ; : ").split(';')]
+                        state = None
+                        if command in (1, 3):
+                            print(
+                                "Choose the new note state:\n"
+                                "0 or active\n"
+                                "1 or completed\n"
+                                "2 or postponed\n"
+                                "3 or termless\n"
+                            )
+                            state = get_value_from_console(
+                                InputType.ENUM_VAL,
+                                "\nEnter a word or a number: ",
+                                Status
+                            )
+                        found = search_notes(notes, keywords, state)
+                        if len(found) < 1:
+                            print("\nNo matches found\n")
+                            continue
+                        for i in found:
+                            display_note_full(notes[i])
                 case 6:
                     break
                 case _:
@@ -324,7 +387,8 @@ def main_menu():
 
 
 def main():
-    main_menu()
+    colorama.init(autoreset=True)
+    main_menu(load_from_json())
     return 0
 
 
