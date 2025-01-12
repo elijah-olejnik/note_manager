@@ -93,7 +93,7 @@ def get_value_from_console(input_type, prompt = "", enum_ = None):
     while True:
         try:
             user_input = input(prompt) if input_type != InputType.TEXT else curses.wrapper(femto.femto, prompt)
-            if not user_input and InputType != InputType.DATE:
+            if not user_input and input_type != InputType.DATE:
                 continue
             match input_type:
                 case InputType.INT:
@@ -157,6 +157,8 @@ def create_note(notes):
             case "status":
                 note[key] = get_value_from_console(InputType.ENUM_VAL, value, Status)
             case "issue_date":
+                if note["status"] in (Status.TERMLESS, Status.COMPLETED):
+                    break
                 note[key] = get_value_from_console(InputType.DATE, value)
             case _:
                 note[key] = get_value_from_console(InputType.STR, value)
