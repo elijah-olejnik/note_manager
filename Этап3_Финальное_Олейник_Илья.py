@@ -1,5 +1,6 @@
 import curses
 import dataclasses
+import sys
 import yaml
 import colorama
 from colorama import Style, Fore
@@ -8,6 +9,9 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from femto import femto  # My tiny console editor
+
+
+datetime_fmt = "%d-%m-%Y %H:%M"
 
 
 class NoteStatus(Enum):
@@ -29,11 +33,10 @@ class Note:
 
 
 class NoteManager:
-    def __init__(self, archive = "notes.yaml", datetime_fmt = "%d-%m-%Y %H:%M"):
+    def __init__(self, archive = "notes.yaml"):
         yaml.add_representer(datetime, self.datetime_representer)
         yaml.add_representer(NoteStatus, self.enum_representer)
         self._notes = []
-        self._datetime_fmt = datetime_fmt
         self._archive_path = archive
         if self.archive_check(archive):
             self._notes = self.import_yaml(self._archive_path)
@@ -49,11 +52,18 @@ class NoteManager:
         return False
 
     @staticmethod
-    def str_to_deadline(str_date, fmt):
-        date = datetime.strptime(str_date, fmt)
+    def str_to_deadline(str_date):
+        date = datetime.strptime(str_date, datetime_fmt)
         if date <= (datetime.now()):
             raise ValueError("The deadline can be only in the future.")
         return date
+
+    @staticmethod
+    def sort_notes(notes, by_created=True, descending=True):
+        if not notes:
+            return []
+        return sorted(notes, key=lambda x: x["created_date"], reverse=descending) if by_created else \
+            sorted(notes, key=lambda x: (x["issue_date"] == datetime.min, x["issue_date"]), reverse=True)
 
     @staticmethod
     def datetime_representer(dumper, data):
@@ -86,6 +96,10 @@ class NoteManager:
                 yaml.dump(export_list, file)
 
     @property
+    def notes(self):
+        return self._notes
+
+    @property
     def archive_path(self):
         return self._archive_path
 
@@ -94,14 +108,6 @@ class NoteManager:
         self._archive_path = archive
         if self.archive_check(archive):
             self._notes = self.import_yaml(self._archive_path)
-
-    @property
-    def datetime_fmt(self):
-        return self._datetime_fmt
-
-    @datetime_fmt.setter
-    def datetime_fmt(self, fmt):
-        self._datetime_fmt = fmt
 
     def _get_note_idx_by_id(self, id_):
         idx = -1
@@ -163,7 +169,7 @@ class NoteManager:
         if len(self._notes) > 0:
             self._notes.clear()
 
-    # The deadline check
+    # Notes deadline check
     def get_urgent_notes_sorted(self):
         missed_dl = []
         today_dl = []
@@ -177,35 +183,7 @@ class NoteManager:
                     today_dl.append(note)
                 elif days == 1:
                     oneday_dl.append(note)
-        output_string = ""
-        missed_count = len(missed_dl)
-        today_count = len(today_dl)
-        oneday_count = len(oneday_dl)
-        if missed_count > 0:
-            output_string += (
-                    "Notes with missed deadline: " + str(missed_count) + "\n"
-                    + "\n".join(note_info[0].titles[0] + " #" + str(note_info[0].id_)
-                                + ", " + str(abs(note_info[1])) + " days after deadline" for note_info in missed_dl)
-            )
-            output_string += "\n"
-        if today_count > 0:
-            output_string += (
-                    "Notes which deadline is today: " + str(today_count) + "\n"
-                    + "\n".join(note.titles[0] + " " + str(note.id_) for note in today_dl) + "\n"
-            )
-        if oneday_count > 0:
-            output_string += (
-                    "Notes which deadline is tomorrow: " + str(oneday_count) + "\n"
-                    + "\n".join(note.titles[0] + " " + str(note.id_) for note in oneday_dl) + "\n"
-            )
-        urg_notes: list[Note] = []
-        for missed in missed_dl:
-            urg_notes.append(missed[0])
-        for today in today_dl:
-            urg_notes.append(today)
-        for oneday in oneday_dl:
-            urg_notes.append(oneday)
-        return output_string, urg_notes
+        return [missed_dl, today_dl, oneday_dl]
 
 
 class InputType(Enum):
@@ -215,24 +193,24 @@ class InputType(Enum):
     ENUM_VAL = 3
     DATE = 4
 
-
-class TerminalInterface:
+# NoteManager CLI and a set of terminal utility functions
+class NoteManagerCLI:
     def __init__(self, note_manager = NoteManager()):
         self._note_manager = note_manager
 
     @staticmethod
-    def user_confirmation():
+    def _user_confirmation():
         while True:
-            user_input = input("Are you sure? y|n: ")
-            if user_input == 'y':
+            user_input = input("Are you sure? yes | no: ")
+            if user_input == 'yes':
                 return True
-            elif user_input == 'n':
+            elif user_input == 'no':
                 return False
             else:
                 pass
 
     @staticmethod
-    def print_note_full(note):
+    def _print_note_full(note):
         row_format = "{:<20} | {:<60}"
         print("-" * 77)
         print(row_format.format(Fore.CYAN + "Note ID" + Style.RESET_ALL, note.id_))
@@ -251,10 +229,11 @@ class TerminalInterface:
         print("-" * 77)
 
     @staticmethod
-    def print_note_short(note):
+    def _print_note_short(note):
         print(f"{Fore.CYAN}Note ID #{Style.RESET_ALL}{note.id_}: {note.title}\n\n")
 
-    def get_value_from_console(self, input_type, prompt="", enum_=None):
+    @staticmethod
+    def _get_value_from_console(input_type, prompt="", enum_=None):
         while True:
             try:
                 user_input = input(prompt) if input_type != InputType.TEXT else curses.wrapper(femto, prompt)
@@ -271,55 +250,189 @@ class TerminalInterface:
                             value = int(user_input)
                             return enum_(value)
                     case InputType.DATE:
-                        return self._note_manager.str_to_deadline(user_input, self._note_manager.datetime_fmt)
+                        return NoteManager.str_to_deadline(user_input)
                     case _:
                         return user_input
             except (KeyError, ValueError) as e:
                 print('\n', e, '\n')
 
+    @classmethod
+    def _display_notes(cls, notes_list, display_full=True, per_page=3):
+        if not notes_list:
+            print("\nNo notes to display.\n")
+            return
+        total_notes = len(notes_list)
+        page = 0
+        while True:
+            start_index = page * per_page
+            end_index = start_index + per_page
+            notes_to_display = notes_list[start_index:end_index]
+            for n in notes_to_display:
+                cls._print_note_full(n) if display_full else cls._print_note_short(n)
+            print(f"Page {page + 1} of {(total_notes + per_page - 1) // per_page}")
+            print("n - next page, p - previous page, q - quit")
+            choice = input("Enter choice: ").lower()
+            if choice == 'n':
+                if end_index < total_notes:
+                    page += 1
+                else:
+                    print("You are on the last page.")
+            elif choice == 'p':
+                if start_index > 0:
+                    page -= 1
+                else:
+                    print("You are on the first page.")
+            elif choice == 'q':
+                break
+            else:
+                print("Invalid choice. Please enter 'n', 'p', or 'q'.")
+
+    def _display_all_sorted(self, params):
+        self._display_notes(
+            self._note_manager.sort_notes(
+                self._note_manager.notes,
+                True if 'c' in params else False,
+                True if 'd' in params else False,
+            ),
+            True if 'f' in params else False
+        )
+
+    def _create_note(self):
+        note_args = [
+            "Enter a username: ",
+            "Enter a title: ",
+            "", "Enter note state: ",
+            "Enter note deadline: "
+        ]
+        for i, arg in enumerate(note_args):
+            match i:
+                case 2:
+                    note_args[i] = self._get_value_from_console(InputType.TEXT)
+                case 3:
+                    note_args[i] = self._get_value_from_console(InputType.ENUM_VAL, arg, NoteStatus)
+                case 4:
+                    if note_args[3] in (NoteStatus.COMPLETED, NoteStatus.TERMLESS):
+                        note_args[i] = datetime.min
+                    else:
+                        note_args[i] = self._get_value_from_console(InputType.DATE, arg)
+                case _:
+                    note_args[i] = self._get_value_from_console(InputType.STR, arg)
+        note = Note(*note_args)
+        self._note_manager.add_note(note)
+        print('\n', "Note created:", '\n')
+        self._print_note_full(note)
+
+    # TODO: REFACTOR TO MATCH CLASS LOGIC
+    def update_note(notes, i):
+        while True:
+            print(
+                "\nChoose what to update or quit program:\n"
+                "1 - Username\n"
+                "2 - Title\n"
+                "3 - Content\n"
+                "4 - Status\n"
+                "5 - Deadline\n"
+                "6 - Return to the main menu\n"
+            )
+            command = get_value_from_console(InputType.INT, "Enter your choice: ")
+            match command:
+                case 1:
+                    input_value = get_value_from_console(InputType.STR, "Enter new username: ")
+                    if not user_confirmation():
+                        continue
+                    notes[i]["username"] = input_value
+                case 2:
+                    input_value = get_value_from_console(InputType.STR, "Enter new title: ")
+                    if not user_confirmation():
+                        continue
+                    notes[i]["titles"][0] = input_value
+                case 3:
+                    input_value = get_value_from_console(InputType.TEXT, notes[i]["content"])
+                    if not user_confirmation():
+                        continue
+                    notes[i]["content"] = input_value
+                    del notes[i]["titles"][1:]
+                    notes[i]["titles"] += extract_titles(input_value)
+                case 4:
+                    print(
+                        "Choose the new note state:\n"
+                        "0 or active\n"
+                        "1 or completed\n"
+                        "2 or postponed\n"
+                        "3 or termless\n"
+                    )
+                    input_value = get_value_from_console(InputType.ENUM_VAL, "\nEnter a word or a number: ")
+                    if not user_confirmation():
+                        continue
+                    notes[i]["status"] = input_value
+                case 5:
+                    input_value = get_value_from_console(InputType.DATE, "Enter new deadline date: ")
+                    if not user_confirmation():
+                        continue
+                    notes[i]["issue_date"] = input_value
+                case 6:
+                    break
+                case _:
+                    continue
+            save_to_json(notes)
+            print("Note updated:\n")
+            display_note_full(notes[i])
+
+    def _display_submenu(self):
+        print(
+            "Display options\n\n"
+            "Show notes in full | short mode: f | s\n"
+            "Sort notes by creation | deadline date: c | i\n"
+            "Ascending | descending: a | d\n"
+        )
+        while True:
+            param_set = set(self._get_value_from_console(InputType.STR,
+                "Enter display options, only 3 supported\n"
+                "(e.g. for full-creation-ascending enter fcd):"
+            ))
+            if len(param_set) < 3 or not param_set.issubset(set("acdfis")):
+                continue
+            else:
+                return param_set
+
+
+    def _main_menu(self):
+        print(
+            "Main menu\n\n"
+            "1. Create note\n"
+            "2. Show all notes\n"
+            "3. Update note\n"
+            "4. Delete note\n"
+            "5. Search notes\n"
+            "6. Quit app\n\n"
+        )
+        return self._get_value_from_console(InputType.STR, "Enter your choice: ")
+
+    def run(self):
+        print('\n', "Welcome to the note manager!", '\n')
+        while True:
+            command = self._main_menu()
+            match command:
+                case '1':
+                    self._create_note()
+                case '2':
+                    self._display_all_sorted(self._display_submenu())
+                case '3':
+                    pass
+                case '4':
+                    pass
+                case '5':
+                    pass
+                case '6':
+                    break
 
 def main():
     note_manager = NoteManager()
-    print("\n", "Welcome to the note manager!\n")
-    notes_count = note_manager.notes_count()
-    if notes_count > 0:
-        print(f"{notes_count}", "notes" if notes_count > 1 else "note", "found")
-    urgent = note_manager.get_urgent_notes_info()
-    if urgent[0]:
-        print(urgent[0])
-        choice = input("View this notes? y | n: ")
-        if choice == 'y':
-            for urg_note in urgent[1]:
-                print(urg_note)
-    while True:
-        print("\nn - new note")
-        print("a - view all notes")
-        print("s - search/vew note(s)")
-        print("e - edit or delete note")
-        print("q - quit\n")
-        command = input("Enter a command: ")
-        match command:
-            case 'q':
-                break
-            case 'a':
-                print("\nHere are your notes:", note_manager)
-            case 's':
-                keywords = input("Enter a username, titles, keywords or IDs separated by ';'\n"
-                                 "or leave blank to return to the main menu: ").split(";")
-                if not keywords:
-                    break
-                found = note_manager.get_notes_indexes_by_keys(keywords)
-                if len(found) > 0:
-                    for i in found:
-                        print(note_manager.get_note_by_idx(i))
-                else:
-                    print("\nNo matches found")
-            case 'e':
-                note_manager.edit_note_in_console()
-            case 'n':
-                note_manager.add_from_console()
-            case _:
-                print(f"{command} is not a command")
+    if sys.stdout.isatty():
+        colorama.init(autoreset=True)
+        term = NoteManagerCLI(note_manager)
+        term.run()
+    return 0
 
 
 if __name__ == "__main__":
