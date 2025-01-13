@@ -152,10 +152,11 @@ class NoteManager:
         found_indexes = self._get_notes_idx_by_filter(keys, state)
         return [self._notes[i] for i in found_indexes] if found_indexes else []
 
-    def delete_note(self, id_):
+    def pop_note(self, id_):
         i = self._get_note_idx_by_id(id_)
-        del self._notes[i]
+        note = self._notes.pop(i)
         self.export_yaml(self._archive_path)
+        return note
 
     def delete_filtered(self, name=None, state=None):
         found_indexes = self._get_notes_idx_by_filter(name, state)
@@ -192,6 +193,7 @@ class InputType(Enum):
     TEXT = 2
     ENUM_VAL = 3
     DATE = 4
+
 
 # NoteManager CLI and a set of terminal utility functions
 class NoteManagerCLI:
@@ -287,7 +289,8 @@ class NoteManagerCLI:
             else:
                 print("Invalid choice. Please enter 'n', 'p', or 'q'.")
 
-    def _display_all_sorted(self, params):
+    def _display_all(self):
+        params = self._display_submenu()
         self._display_notes(
             self._note_manager.sort_notes(
                 self._note_manager.notes,
@@ -322,65 +325,66 @@ class NoteManagerCLI:
         print('\n', "Note created:", '\n')
         self._print_note_full(note)
 
-    # TODO: REFACTOR TO MATCH CLASS LOGIC
-    def update_note(notes, i):
+    def _update_note(self):
         while True:
-            print(
-                "\nChoose what to update or quit program:\n"
-                "1 - Username\n"
-                "2 - Title\n"
-                "3 - Content\n"
-                "4 - Status\n"
-                "5 - Deadline\n"
-                "6 - Return to the main menu\n"
-            )
-            command = get_value_from_console(InputType.INT, "Enter your choice: ")
-            match command:
+            what_to_edit = self._update_submenu()
+            match what_to_edit[0]:
                 case 1:
-                    input_value = get_value_from_console(InputType.STR, "Enter new username: ")
-                    if not user_confirmation():
+                    input_value = self._get_value_from_console(InputType.STR, "Enter new username: ")
+                    if not self._user_confirmation():
                         continue
-                    notes[i]["username"] = input_value
+                    self._note_manager.get_note_by_id(what_to_edit[1]).username = input_value
                 case 2:
-                    input_value = get_value_from_console(InputType.STR, "Enter new title: ")
-                    if not user_confirmation():
+                    input_value = self._get_value_from_console(InputType.STR, "Enter new title: ")
+                    if not self._user_confirmation():
                         continue
-                    notes[i]["titles"][0] = input_value
+                    self._note_manager.get_note_by_id(what_to_edit[1]).title = input_value
                 case 3:
-                    input_value = get_value_from_console(InputType.TEXT, notes[i]["content"])
-                    if not user_confirmation():
-                        continue
-                    notes[i]["content"] = input_value
-                    del notes[i]["titles"][1:]
-                    notes[i]["titles"] += extract_titles(input_value)
-                case 4:
-                    print(
-                        "Choose the new note state:\n"
-                        "0 or active\n"
-                        "1 or completed\n"
-                        "2 or postponed\n"
-                        "3 or termless\n"
+                    input_value = self._get_value_from_console(
+                        InputType.TEXT,
+                        self._note_manager.get_note_by_id(what_to_edit[1]).content
                     )
-                    input_value = get_value_from_console(InputType.ENUM_VAL, "\nEnter a word or a number: ")
-                    if not user_confirmation():
+                    if not self._user_confirmation():
                         continue
-                    notes[i]["status"] = input_value
+                    self._note_manager.get_note_by_id(what_to_edit[1]).content = input_value
+                case 4:
+                    input_value = self._state_submenu()
+                    if not self._user_confirmation():
+                        continue
+                    self._note_manager.get_note_by_id(what_to_edit[1]).status = input_value
                 case 5:
-                    input_value = get_value_from_console(InputType.DATE, "Enter new deadline date: ")
-                    if not user_confirmation():
+                    input_value = self._get_value_from_console(InputType.DATE, "Enter new deadline date: ")
+                    if not self._user_confirmation():
                         continue
-                    notes[i]["issue_date"] = input_value
+                    self._note_manager.get_note_by_id(what_to_edit[1]).issue_date = input_value
                 case 6:
                     break
                 case _:
                     continue
-            save_to_json(notes)
+            self._note_manager.export_yaml(self._note_manager.archive_path)
             print("Note updated:\n")
-            display_note_full(notes[i])
+            self._print_note_full(self._note_manager.get_note_by_id(what_to_edit[1]))
+
+    def _delete_note(self):
+        note_id = self._get_value_from_console(InputType.INT, "Enter the note ID to delete: ")
+        if not self._user_confirmation():
+            return
+        deleted = self._note_manager.pop_note(note_id)
+        print(f'\nNote #{deleted.id_} "{deleted.title}" deleted.')
+
+    def _state_submenu(self):
+        print(
+            "Choose the new note state:\n\n"
+            "0 or active\n"
+            "1 or completed\n"
+            "2 or postponed\n"
+            "3 or termless\n\n"
+        )
+        return self._get_value_from_console(InputType.ENUM_VAL, "\nEnter a word or a number: ")
 
     def _display_submenu(self):
         print(
-            "Display options\n\n"
+            "Notes display options\n\n"
             "Show notes in full | short mode: f | s\n"
             "Sort notes by creation | deadline date: c | i\n"
             "Ascending | descending: a | d\n"
@@ -395,6 +399,28 @@ class NoteManagerCLI:
             else:
                 return param_set
 
+    def _update_submenu(self):
+        note_id = self._get_value_from_console(InputType.INT, "Enter the note ID to edit: ")
+        print(
+            "Note edit menu\n\n"
+            "1. Username\n"
+            "2. Title\n"
+            "3. Content\n"
+            "4. Status\n"
+            "5. Deadline\n"
+            "6. Back to the main menu\n\n"
+        )
+        choice = self._get_value_from_console(InputType.STR, "Enter your choice: ")
+        return choice, note_id
+
+    def _search_submenu:
+        print(
+            "Search by:\n\n"
+            "1 - state\n"
+            "2 - keywords\n"
+            "3 - both\n"
+            "4 - Back to the main menu\n\n"
+        )
 
     def _main_menu(self):
         print(
@@ -416,15 +442,16 @@ class NoteManagerCLI:
                 case '1':
                     self._create_note()
                 case '2':
-                    self._display_all_sorted(self._display_submenu())
+                    self._display_all()
                 case '3':
-                    pass
+                    self._update_note()
                 case '4':
-                    pass
+                    self._delete_note()
                 case '5':
                     pass
                 case '6':
                     break
+
 
 def main():
     note_manager = NoteManager()
