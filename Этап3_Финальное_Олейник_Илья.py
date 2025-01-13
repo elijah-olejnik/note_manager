@@ -62,8 +62,8 @@ class NoteManager:
     def sort_notes(notes, by_created=True, descending=True):
         if not notes:
             return []
-        return sorted(notes, key=lambda x: x["created_date"], reverse=descending) if by_created else \
-            sorted(notes, key=lambda x: (x["issue_date"] == datetime.min, x["issue_date"]), reverse=True)
+        return sorted(notes, key=lambda x: x.created_date, reverse=descending) if by_created else \
+            sorted(notes, key=lambda x: (x.issue_date == datetime.min, x.issue_date), reverse=True)
 
     @staticmethod
     def datetime_representer(dumper, data):
@@ -372,15 +372,34 @@ class NoteManagerCLI:
         deleted = self._note_manager.pop_note(note_id)
         print(f'\nNote #{deleted.id_} "{deleted.title}" deleted.')
 
+    def _search_notes(self):
+        while True:
+            command = self._search_submenu()
+            if command == '4':
+                break
+            keywords = None
+            if command in ('2', '3'):
+                keywords = [key.strip().lower() for key in
+                            input("Enter keywords, separated by ; : ").split(';')]
+            state = None
+            if command in ('1', '3'):
+                print("HERE")
+                state = self._state_submenu()
+            notes = self._note_manager.filter_notes(keywords, state)
+            if len(notes) < 1:
+                print("\nNo matches found\n")
+                continue
+            self._display_notes(notes)
+
     def _state_submenu(self):
         print(
-            "Choose the new note state:\n\n"
+            "\nChoose the new note state:\n\n"
             "0 or active\n"
             "1 or completed\n"
             "2 or postponed\n"
-            "3 or termless\n\n"
+            "3 or termless\n"
         )
-        return self._get_value_from_console(InputType.ENUM_VAL, "\nEnter a word or a number: ")
+        return self._get_value_from_console(InputType.ENUM_VAL, "Enter a word or a number: ", NoteStatus)
 
     def _display_submenu(self):
         print(
@@ -402,40 +421,41 @@ class NoteManagerCLI:
     def _update_submenu(self):
         note_id = self._get_value_from_console(InputType.INT, "Enter the note ID to edit: ")
         print(
-            "Note edit menu\n\n"
+            "\nNote edit menu\n\n"
             "1. Username\n"
             "2. Title\n"
             "3. Content\n"
             "4. Status\n"
             "5. Deadline\n"
-            "6. Back to the main menu\n\n"
+            "6. Back to the main menu\n"
         )
         choice = self._get_value_from_console(InputType.STR, "Enter your choice: ")
         return choice, note_id
 
-    def _search_submenu:
+    def _search_submenu(self):
         print(
-            "Search by:\n\n"
+            "\nSearch by:\n\n"
             "1 - state\n"
             "2 - keywords\n"
             "3 - both\n"
-            "4 - Back to the main menu\n\n"
+            "4 - Back to the main menu\n"
         )
+        return self._get_value_from_console(InputType.STR, "Enter your choice: ")
 
     def _main_menu(self):
         print(
-            "Main menu\n\n"
+            "\nMain menu\n\n"
             "1. Create note\n"
             "2. Show all notes\n"
             "3. Update note\n"
             "4. Delete note\n"
             "5. Search notes\n"
-            "6. Quit app\n\n"
+            "6. Quit app\n"
         )
         return self._get_value_from_console(InputType.STR, "Enter your choice: ")
 
     def run(self):
-        print('\n', "Welcome to the note manager!", '\n')
+        print('\n', "Welcome to the note manager!")
         while True:
             command = self._main_menu()
             match command:
@@ -448,7 +468,7 @@ class NoteManagerCLI:
                 case '4':
                     self._delete_note()
                 case '5':
-                    pass
+                    self._search_notes()
                 case '6':
                     break
 
