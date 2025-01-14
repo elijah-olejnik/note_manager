@@ -23,13 +23,13 @@ class NoteStatus(Enum):
 
 @dataclasses.dataclass
 class Note:
-    username: str
-    title: str
-    content: str
-    status: NoteStatus
-    issue_date: datetime.date
     id_: int = randint(10000, 99999)
+    username: str = ""
+    title: str = ""
+    content: str = ""
+    status: NoteStatus = NoteStatus.TERMLESS
     created_date: datetime.date = datetime.now()
+    issue_date: datetime.date = datetime.min
 
 
 class NoteManager:
@@ -311,7 +311,7 @@ class NoteManagerCLI:
                 case 2:
                     note_args[i] = self._get_value_from_console(InputType.TEXT)
                 case 3:
-                    note_args[i] = self._get_value_from_console(InputType.ENUM_VAL, arg, NoteStatus)
+                    note_args[i] = self._state_submenu()
                 case 4:
                     if note_args[3] in (NoteStatus.COMPLETED, NoteStatus.TERMLESS):
                         note_args[i] = datetime.min
