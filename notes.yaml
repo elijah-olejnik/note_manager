@@ -1,4 +1,4 @@
-- id: 37062
+- id_: 37062
   username: "Ilia Oleinik"
   title: "My Python questions"
   content: |
@@ -14,7 +14,7 @@
   created_date: "2024-12-22T00:00:00"
   issue_date: "2025-02-22T00:00:00"
 
-- id: 16238
+- id_: 16238
   username: "Sheldon, the dog"
   title: "My weekday"
   content: |
@@ -25,7 +25,7 @@
   created_date: "2025-01-02T02:43:32.383806"
   issue_date: "0001-01-01T00:00:00"
 
-- id: 75240
+- id_: 75240
   username: "Galina"
   title: "Movies I like"
   content: |
@@ -40,7 +40,7 @@
   created_date: "2025-01-02T02:50:12.214543"
   issue_date: "0001-01-01T00:00:00"
 
-- id: 15114
+- id_: 15114
   username: "Elijah"
   title: "femto editor"
   content: |
