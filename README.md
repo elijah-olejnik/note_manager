@@ -71,7 +71,25 @@ This is the compilation of all previous stages. Also I created a tiny terminal t
 called "femto" to make note text editing more convenient. Use Terminal emulation to get
 "femto" editor working
 ### Stage 3
-#### create_note_function
+#### create_note_function.py
 Just another effort to make my adding function more elegant
-#### update_note_function
-TODO: description
+#### update_note_function.py
+Note update script loads dummy notes from JSON file and asks the user to modify the data fields
+in the note, then displays note
+#### display_note_function.py
+This script extends notes displaying logic and outputs the dummy notes from JSON file formatted 
+and colored
+#### search_note_function
+This script loads the dummy notes from JSON and extends the notes filtering function: the user can
+search notes by the keywords, state, or state and keywords
+#### menu.py
+This is my first effort to make a CLI-based menu, but I did better in the final task
+#### Этап3_Финальное_Олейник_Илья.py
+This is the compilation of all previous stages. 
+All logic is splitted to 3 modules:
+1. Note (dataclass)
+2. NoteManager (Business logic model)
+3. NoteManagerCLI (User interface with menus and etc.)
+
+Notes loading and saving to a file changed to YAML (notes.yaml file is needed). Also, it is better
+tu run this program inside a terminal, because of curses library use.
