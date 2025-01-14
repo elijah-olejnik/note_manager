@@ -1,52 +1,21 @@
-- id_: 37062
-  username: "Ilia Oleinik"
-  title: "My Python questions"
-  content: |
-    My Python questions
-    
-    1. How do I check the sizeof(variable)?
-    2. Where and how the memory is allocated for the variables?
-    3. Is there Heap or Stack concepts in Python?
-    4. How can I manage the padding (alignment in the memory) if the variable is lesser than 4 bytes?
-    5. What are the best memory consumption reduce practices in Python?
-    6. What are the prospects for writing high-performance self-learning models for embedded and IoT using Python?
-  status: "ACTIVE"
-  created_date: "2024-12-22T00:00:00"
-  issue_date: "2025-02-22T00:00:00"
+- content: '
 
-- id_: 16238
-  username: "Sheldon, the dog"
-  title: "My weekday"
-  content: |
-    My weekday
-    
-    Woke up, watched through the window, ate, walked and barked on everything
-  status: "TERMLESS"
-  created_date: "2025-01-02T02:43:32.383806"
-  issue_date: "0001-01-01T00:00:00"
+    Test title
 
-- id_: 75240
-  username: "Galina"
-  title: "Movies I like"
-  content: |
-    Movies I like
 
-    Grinch, Harry Potter, Taxi, Asterix & Obelix
+    test content
 
-    Movies I don't like
-
-    The Matrix, Blade, Begotten, Sex And The City
-  status: "TERMLESS"
-  created_date: "2025-01-02T02:50:12.214543"
-  issue_date: "0001-01-01T00:00:00"
-
-- id_: 15114
-  username: "Elijah"
-  title: "femto editor"
-  content: |
-    femto editor
-
-    This is the first note written from my first console editor. I'm happy
-  status: "TERMLESS"
-  created_date: "2025-01-06T02:48:15.194404"
-  issue_date: "0001-01-01T00:00:00"
+    '
+  created_date: '2025-01-14T23:05:45.340720'
+  id_: 91888
+  issue_date: '2025-02-01T12:00:00'
+  status: COMPLETED
+  title: Final test
+  username: Elijah
+- content: Delete me please
+  created_date: '2025-01-14T23:18:45.033210'
+  id_: 15291
+  issue_date: '2025-01-15T12:00:00'
+  status: ACTIVE
+  title: Delete me
+  username: Ilia
