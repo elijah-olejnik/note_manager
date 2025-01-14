@@ -36,7 +36,7 @@ def custom_decoder(obj):
 def load_notes():
     notes_list = []
     try:
-        with open("notes.json") as f:
+        with open("../notes.json") as f:
             notes_list = json.loads(f.read(), object_hook=custom_decoder)
     except (OSError, ValueError) as e:
         print("Couldn't open/read notes.json:", e)
