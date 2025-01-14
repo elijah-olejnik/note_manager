@@ -6,7 +6,7 @@ import curses
 def femto(screen, initial_text=""):
     header = (
         "Edit your note text. To exit and save text press Esc",
-        "To add a title surround it with {{double curly braces}}"
+        ""
     )
     header_height = len(header)
     screen.clear()

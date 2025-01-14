@@ -319,7 +319,7 @@ class NoteManagerCLI:
         self._print_note_full(note)
 
     def _update_note(self):
-        note_id = self._get_value_from_console(InputType.INT, "Enter the note ID to edit: ")
+        note_id = self._get_value_from_console(InputType.INT, "\nEnter the note ID to edit: ")
         i = self._note_manager.get_note_idx_by_id(note_id)
         if i == -1:
             print(f"\nNote with ID#{note_id} not found.\n")
