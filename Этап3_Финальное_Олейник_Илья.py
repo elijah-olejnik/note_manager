@@ -33,23 +33,16 @@ class Note:
 
 
 class NoteManager:
-    def __init__(self, archive = "notes.yaml"):
+    def __init__(self, notes):
         yaml.add_representer(datetime, self.datetime_representer)
         yaml.add_representer(NoteStatus, self.enum_representer)
-        self._notes = []
-        self._archive_path = archive
-        if self.archive_check(archive):
-            self._notes = self.import_yaml(self._archive_path)
+        if not notes:
+            self._notes = []
+        else:
+            self._notes = notes
 
     def __str__(self):
         return self._notes.__str__()
-
-    @staticmethod
-    def archive_check(pathname):
-        archive = Path(pathname)
-        if archive.is_file() and archive.stat().st_size > 0:
-            return True
-        return False
 
     @staticmethod
     def str_to_deadline(str_date):
@@ -75,39 +68,38 @@ class NoteManager:
 
     @staticmethod
     def import_yaml(filename):
-        with open(filename, 'r') as file:
-            import_list = yaml.safe_load(file)
-        return [
-            Note(
-                id_=d["id"],
-                username=d["username"],
-                title=d["title"],
-                content=d["content"],
-                status=NoteStatus[d["status"]],
-                created_date=datetime.fromisoformat(d["created_date"]),
-                issue_date=datetime.fromisoformat(d["issue_date"])
-            ) for d in import_list
-        ]
+        try:
+            with open(filename, 'r') as file:
+                import_list = yaml.safe_load(file)
+            return [
+                Note(
+                    id_=d["id"],
+                    username=d["username"],
+                    title=d["title"],
+                    content=d["content"],
+                    status=NoteStatus[d["status"]],
+                    created_date=datetime.fromisoformat(d["created_date"]),
+                    issue_date=datetime.fromisoformat(d["issue_date"])
+                ) for d in import_list
+            ]
+        except (OSError, ValueError) as e:
+            return []
 
-    def export_yaml(self, filename):
-        if len(self._notes) > 0:
-            export_list = [dataclasses.asdict(note) for note in self._notes]
+    @staticmethod
+    def export_yaml(notes, filename):
+        if len(notes) < 1:
+            return False
+        export_list = [dataclasses.asdict(note) for note in notes]
+        try:
             with open(filename, 'w') as file:
                 yaml.dump(export_list, file)
+            return True
+        except (OSError, ValueError):
+            return False
 
     @property
     def notes(self):
         return self._notes
-
-    @property
-    def archive_path(self):
-        return self._archive_path
-
-    @archive_path.setter
-    def archive_path(self, archive):
-        self._archive_path = archive
-        if self.archive_check(archive):
-            self._notes = self.import_yaml(self._archive_path)
 
     def _get_note_idx_by_id(self, id_):
         idx = -1
@@ -155,7 +147,6 @@ class NoteManager:
     def pop_note(self, id_):
         i = self._get_note_idx_by_id(id_)
         note = self._notes.pop(i)
-        self.export_yaml(self._archive_path)
         return note
 
     def delete_filtered(self, name=None, state=None):
@@ -164,7 +155,6 @@ class NoteManager:
             raise KeyError("Can't delete non-existing notes")
         for i in sorted(found_indexes, reverse=True):
             del self._notes[i]
-        self.export_yaml(self._archive_path)
 
     def clear(self):
         if len(self._notes) > 0:
@@ -184,7 +174,7 @@ class NoteManager:
                     today_dl.append(note)
                 elif days == 1:
                     oneday_dl.append(note)
-        return [missed_dl, today_dl, oneday_dl]
+        return [self.sort_notes(missed_dl, False, False), today_dl, oneday_dl]
 
 
 class InputType(Enum):
@@ -197,8 +187,17 @@ class InputType(Enum):
 
 # NoteManager CLI and a set of terminal utility functions
 class NoteManagerCLI:
-    def __init__(self, note_manager = NoteManager()):
-        self._note_manager = note_manager
+    def __init__(self, archive=""):
+        self._archive_path = archive
+        self._note_manager = NoteManager(NoteManager.import_yaml(self._archive_path)) \
+            if self._archive_check(archive) else NoteManager([])
+
+    @staticmethod
+    def _archive_check(pathname):
+        archive = Path(pathname)
+        if archive.is_file() and archive.stat().st_size > 0:
+            return True
+        return False
 
     @staticmethod
     def _user_confirmation():
@@ -322,54 +321,64 @@ class NoteManagerCLI:
                     note_args[i] = self._get_value_from_console(InputType.STR, arg)
         note = Note(*note_args)
         self._note_manager.add_note(note)
+        self._save_notes()
         print('\n', "Note created:", '\n')
         self._print_note_full(note)
 
     def _update_note(self):
         while True:
-            what_to_edit = self._update_submenu()
-            match what_to_edit[0]:
-                case 1:
-                    input_value = self._get_value_from_console(InputType.STR, "Enter new username: ")
-                    if not self._user_confirmation():
+            try:
+                what_to_edit = self._update_submenu()
+                match what_to_edit[0]:
+                    case 1:
+                        input_value = self._get_value_from_console(InputType.STR, "Enter new username: ")
+                        if not self._user_confirmation():
+                            continue
+                        self._note_manager.get_note_by_id(what_to_edit[1]).username = input_value
+                    case 2:
+                        input_value = self._get_value_from_console(InputType.STR, "Enter new title: ")
+                        if not self._user_confirmation():
+                            continue
+                        self._note_manager.get_note_by_id(what_to_edit[1]).title = input_value
+                    case 3:
+                        input_value = self._get_value_from_console(
+                            InputType.TEXT,
+                            self._note_manager.get_note_by_id(what_to_edit[1]).content
+                        )
+                        if not self._user_confirmation():
+                            continue
+                        self._note_manager.get_note_by_id(what_to_edit[1]).content = input_value
+                    case 4:
+                        input_value = self._state_submenu()
+                        if not self._user_confirmation():
+                            continue
+                        self._note_manager.get_note_by_id(what_to_edit[1]).status = input_value
+                    case 5:
+                        input_value = self._get_value_from_console(InputType.DATE, "Enter new deadline date: ")
+                        if not self._user_confirmation():
+                            continue
+                        self._note_manager.get_note_by_id(what_to_edit[1]).issue_date = input_value
+                    case 6:
+                        break
+                    case _:
                         continue
-                    self._note_manager.get_note_by_id(what_to_edit[1]).username = input_value
-                case 2:
-                    input_value = self._get_value_from_console(InputType.STR, "Enter new title: ")
-                    if not self._user_confirmation():
-                        continue
-                    self._note_manager.get_note_by_id(what_to_edit[1]).title = input_value
-                case 3:
-                    input_value = self._get_value_from_console(
-                        InputType.TEXT,
-                        self._note_manager.get_note_by_id(what_to_edit[1]).content
-                    )
-                    if not self._user_confirmation():
-                        continue
-                    self._note_manager.get_note_by_id(what_to_edit[1]).content = input_value
-                case 4:
-                    input_value = self._state_submenu()
-                    if not self._user_confirmation():
-                        continue
-                    self._note_manager.get_note_by_id(what_to_edit[1]).status = input_value
-                case 5:
-                    input_value = self._get_value_from_console(InputType.DATE, "Enter new deadline date: ")
-                    if not self._user_confirmation():
-                        continue
-                    self._note_manager.get_note_by_id(what_to_edit[1]).issue_date = input_value
-                case 6:
-                    break
-                case _:
-                    continue
-            self._note_manager.export_yaml(self._note_manager.archive_path)
-            print("Note updated:\n")
-            self._print_note_full(self._note_manager.get_note_by_id(what_to_edit[1]))
+                self._save_notes()
+                print("Note updated:\n")
+                self._print_note_full(self._note_manager.get_note_by_id(what_to_edit[1]))
+            except ValueError as e:
+                print('\n', e, '\n')
+                continue
+
+    def _save_notes(self):
+        if not self._note_manager.export_yaml(self._note_manager.notes, self._archive_path):
+            print("\nExport to file failed.\n")
 
     def _delete_note(self):
         note_id = self._get_value_from_console(InputType.INT, "Enter the note ID to delete: ")
         if not self._user_confirmation():
             return
         deleted = self._note_manager.pop_note(note_id)
+        self._save_notes()
         print(f'\nNote #{deleted.id_} "{deleted.title}" deleted.')
 
     def _search_notes(self):
@@ -444,18 +453,34 @@ class NoteManagerCLI:
 
     def _main_menu(self):
         print(
-            "\nMain menu\n\n"
-            "1. Create note\n"
-            "2. Show all notes\n"
-            "3. Update note\n"
-            "4. Delete note\n"
-            "5. Search notes\n"
-            "6. Quit app\n"
+            f"{Fore.GREEN}\nMain menu{Style.RESET_ALL}\n\n"
+            f"{Fore.YELLOW}1.{Style.RESET_ALL} Create note\n"
+            f"{Fore.YELLOW}2.{Style.RESET_ALL} Show all notes\n"
+            f"{Fore.YELLOW}3.{Style.RESET_ALL} Update note\n"
+            f"{Fore.YELLOW}4.{Style.RESET_ALL} Delete note\n"
+            f"{Fore.YELLOW}5.{Style.RESET_ALL} Search notes\n"
+            f"{Fore.YELLOW}6.{Style.RESET_ALL}2 Quit app\n"
         )
         return self._get_value_from_console(InputType.STR, "Enter your choice: ")
 
+    def _deadline_check_and_notify(self):
+        urgent_notes = self._note_manager.get_urgent_notes_sorted()
+        if urgent_notes[0]:
+            print('\n', "Notes with missed deadline:", len(urgent_notes[0]), '\n')
+            for note in urgent_notes[0]:
+                print(f"ID #{note.id_}", note.title)
+        if urgent_notes[1]:
+            print('\n', "Notes with today deadline:", len(urgent_notes[1]), '\n')
+            for note in urgent_notes[1]:
+                print(f"ID #{note.id_}", note.title)
+        if urgent_notes[2]:
+            print('\n', "Notes with deadline tomorrow:", len(urgent_notes[2]), '\n')
+            for note in urgent_notes[2]:
+                print(f"ID #{note.id_}", note.title)
+
     def run(self):
         print('\n', "Welcome to the note manager!")
+        self._deadline_check_and_notify()
         while True:
             command = self._main_menu()
             match command:
@@ -474,11 +499,11 @@ class NoteManagerCLI:
 
 
 def main():
-    note_manager = NoteManager()
     if sys.stdout.isatty():
         colorama.init(autoreset=True)
-        term = NoteManagerCLI(note_manager)
+        term = NoteManagerCLI("notes.yaml")
         term.run()
+    # Here is the place for GUI initialization
     return 0
 
 
