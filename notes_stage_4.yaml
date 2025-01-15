@@ -12,3 +12,10 @@
   status: ACTIVE
   title: Test
   username: Elijah
+- content: This note was appended to the YAML file
+  created_date: '2025-01-16T01:04:05.509532'
+  id_: 70234
+  issue_date: '0001-01-01T00:00:00'
+  status: TERMLESS
+  title: Appended
+  username: User
