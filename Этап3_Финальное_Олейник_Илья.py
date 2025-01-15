@@ -81,7 +81,7 @@ class NoteManager:
             notes_list = []
             for d in import_list:
                 if not all(field in d for field in required_fields):
-                    raise DataIntegrityError(f"Missing required fields in record: {d}\nCheck file content")
+                    raise DataIntegrityError(f"Missing required fields in record: {d}")
                 try:
                     note = Note(
                         content=d["content"],
@@ -94,7 +94,7 @@ class NoteManager:
                     )
                     notes_list.append(note)
                 except(ValueError, KeyError, TypeError) as e:
-                    raise DataIntegrityError(f"Data format error in record {d}: {e}\nCheck file content.")
+                    raise DataIntegrityError(f"Data format error in record {d}: {e}.")
             return notes_list
         except (OSError, ValueError, yaml.YAMLError, DataIntegrityError) as e:
             warnings.warn(e)

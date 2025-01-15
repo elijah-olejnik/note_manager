@@ -121,7 +121,6 @@ def save_notes_to_file(note_list, filename):
         return e.__str__()
 
 
-# TODO: check the error handling logic
 def load_notes_from_file(filename):
     required_fields = ("content", "created_date", "id_", "issue_date", "status", "title", "username")
     try:

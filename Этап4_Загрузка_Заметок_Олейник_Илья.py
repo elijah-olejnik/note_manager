@@ -9,25 +9,37 @@ class NoteStatus(Enum):
     POSTPONED = 2
     TERMLESS = 3
 
-# TODO: add file content check
+
+class DataIntegrityError(Exception):
+    pass
+
+
 def load_notes_from_file(filename):
+    required_fields = ("content", "created_date", "id_", "issue_date", "status", "title", "username")
     try:
         with open(filename, 'r') as file:
             import_list = yaml.safe_load(file)
         if not import_list:
             raise ValueError(f"File {filename} is empty!")
-        return [
-            {
-                "content" : d["content"],
-                "created_date" : datetime.fromisoformat(d["created_date"]),
-                "id_" : d["id_"],
-                "issue_date" : datetime.fromisoformat(d["issue_date"]),
-                "status" : NoteStatus[d["status"]],
-                "title" : d["title"],
-                "username" : d["username"]
-            } for d in import_list
-        ]
-    except (OSError, ValueError) as e:
+        notes_list = []
+        for dic in import_list:
+            if not all(field in dic for field in required_fields):
+                raise DataIntegrityError(f"Missing required fields in record: {dic}")
+            try:
+                note = {
+                    "content": dic["content"],
+                    "created_date": datetime.fromisoformat(dic["created_date"]),
+                    "id_": dic["id_"],
+                    "issue_date": datetime.fromisoformat(dic["issue_date"]),
+                    "status": NoteStatus[dic["status"]],
+                    "title": dic["title"],
+                    "username": dic["username"]
+                }
+                notes_list.append(note)
+            except (ValueError, KeyError, TypeError) as e:
+                raise DataIntegrityError(f"Data format error in record {dic}: {e}")
+        return notes_list
+    except (OSError, ValueError, yaml.YAMLError, DataIntegrityError) as e:
         print("\nNotes load failed:", e)
         return []
 
