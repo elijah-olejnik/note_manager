@@ -108,10 +108,9 @@ def enum_representer(dumper, data):
 def save_notes_to_file(note_list, filename):
     if not note_list:
         return False, "No notes to save"
-    export_list = [dataclasses.asdict(note) for note in note_list]
     try:
         with open(filename, 'w') as file:
-            yaml.dump(export_list, file)
+            yaml.dump(note_list, file)
         return True, "Notes are successfully saved"
     except (OSError, ValueError) as e:
         return False, e
@@ -126,7 +125,7 @@ def main_menu():
     else:
         print(
             "\n1. Create note\n"
-            "\n2. Quit\n"
+            "2. Quit\n"
         )
     return get_value_from_console(InputType, "Enter your choice: ")
 
