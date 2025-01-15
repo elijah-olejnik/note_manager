@@ -71,6 +71,8 @@ class NoteManager:
         try:
             with open(filename, 'r') as file:
                 import_list = yaml.safe_load(file)
+            if not import_list:
+                raise ValueError(f"File {filename} is empty!")
             return [
                 Note(
                     content=d["content"],
