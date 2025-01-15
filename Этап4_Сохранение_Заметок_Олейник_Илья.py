@@ -1,5 +1,4 @@
 import curses
-import dataclasses
 import random
 import yaml
 from datetime import datetime
