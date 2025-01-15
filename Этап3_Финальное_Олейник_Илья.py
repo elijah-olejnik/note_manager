@@ -67,7 +67,7 @@ class NoteManager:
         return dumper.represent_scalar("tag:yaml.org,2002:str", data.name)
 
     @staticmethod
-    def import_yaml(filename):
+    def import_yaml(filename): # TODO: add content check
         try:
             with open(filename, 'r') as file:
                 import_list = yaml.safe_load(file)
