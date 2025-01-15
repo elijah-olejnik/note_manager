@@ -9,7 +9,7 @@ class NoteStatus(Enum):
     POSTPONED = 2
     TERMLESS = 3
 
-
+# TODO: add file content check
 def load_notes_from_file(filename):
     try:
         with open(filename, 'r') as file:
