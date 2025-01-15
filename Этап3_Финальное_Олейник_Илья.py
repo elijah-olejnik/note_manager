@@ -21,6 +21,10 @@ class NoteStatus(Enum):
     TERMLESS = 3
 
 
+class DataIntegrityError(Exception):
+    pass
+
+
 @dataclasses.dataclass
 class Note:
     content: str
@@ -67,37 +71,46 @@ class NoteManager:
         return dumper.represent_scalar("tag:yaml.org,2002:str", data.name)
 
     @staticmethod
-    def import_yaml(filename): # TODO: add content check
+    def import_yaml(filename):
+        required_fields = ("content", "created_date", "id_", "issue_date", "status", "title", "username")
         try:
             with open(filename, 'r') as file:
                 import_list = yaml.safe_load(file)
             if not import_list:
                 raise ValueError(f"File {filename} is empty!")
-            return [
-                Note(
-                    content=d["content"],
-                    created_date=datetime.fromisoformat(d["created_date"]),
-                    id_=d["id_"],
-                    issue_date=datetime.fromisoformat(d["issue_date"]),
-                    status=NoteStatus[d["status"]],
-                    title=d["title"],
-                    username=d["username"]
-                ) for d in import_list
-            ]
-        except (OSError, ValueError) as e:
+            notes_list = []
+            for d in import_list:
+                if not all(field in d for field in required_fields):
+                    raise DataIntegrityError(f"Missing required fields in record: {d}\nCheck file content")
+                try:
+                    note = Note(
+                        content=d["content"],
+                        created_date=datetime.fromisoformat(d["created_date"]),
+                        id_=d["id_"],
+                        issue_date=datetime.fromisoformat(d["issue_date"]),
+                        status=NoteStatus[d["status"]],
+                        title=d["title"],
+                        username=d["username"]
+                    )
+                    notes_list.append(note)
+                except(ValueError, KeyError, TypeError) as e:
+                    raise DataIntegrityError(f"Data format error in record {d}: {e}\nCheck file content.")
+            return notes_list
+        except (OSError, ValueError, yaml.YAMLError, DataIntegrityError) as e:
             warnings.warn(e)
             return []
 
     @staticmethod
     def export_yaml(notes, filename):
-        if len(notes) < 1:
+        if not notes:
             return False
         export_list = [dataclasses.asdict(note) for note in notes]
         try:
             with open(filename, 'w') as file:
                 yaml.dump(export_list, file)
             return True
-        except (OSError, ValueError):
+        except (OSError, ValueError) as e:
+            warnings.warn(e)
             return False
 
     @property
