@@ -3,6 +3,7 @@ import json
 import random
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 
 from femto import femto  # My tiny console editor
 
@@ -132,11 +133,19 @@ def main_menu():
 
 
 def main():
+    filename = "notes_stage_4.json"
+    file_path = Path(filename)
+    if not file_path.is_file():
+        try:
+            with open(filename, 'w'): pass
+        except (OSError, ValueError) as e:
+            print("Can't create a new file:", e)
+        print(f"File {filename} wasn't found. A new file is created.")
     while True:
         choice = main_menu()
         if choice == '2':
             if notes:
-                print(save_notes_json(notes, "notes_stage_4.json"))
+                print(save_notes_json(notes, filename))
             break
         if choice == '1':
             notes.append(create_note())
