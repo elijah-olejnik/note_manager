@@ -1,5 +1,7 @@
 import curses
 import random
+from pathlib import Path
+
 import yaml
 from datetime import datetime
 from enum import Enum
@@ -23,6 +25,10 @@ class InputType(Enum):
     TEXT = 2
     ENUM_VAL = 3
     DATE = 4
+
+
+class DataIntegrityError(Exception):
+    pass
 
 
 def str_to_deadline(str_date):
@@ -112,7 +118,37 @@ def save_notes_to_file(note_list, filename):
             yaml.dump(note_list, file)
         return "Notes are successfully saved"
     except (OSError, ValueError) as e:
-        return e
+        return e.__str__()
+
+
+def load_notes_from_file(filename):
+    required_fields = ("content", "created_date", "id_", "issue_date", "status", "title", "username")
+    try:
+        with open(filename, 'r') as file:
+            import_list = yaml.safe_load(file)
+        if not import_list:
+            raise ValueError(f"File {filename} is empty!")
+        note_list = []
+        for dic in import_list:
+            if not all(field in dic for field in required_fields):
+                raise DataIntegrityError(f"Missing required fields in record: {dic}")
+            try:
+                note = {
+                    "content" : dic["content"],
+                    "created_date" : datetime.fromisoformat(dic["created_date"]),
+                    "id_" : dic["id_"],
+                    "issue_date" : datetime.fromisoformat(dic["issue_date"]),
+                    "status" : NoteStatus[dic["status"]],
+                    "title" : dic["title"],
+                    "username" : dic["username"]
+                }
+                note_list.append(note)
+            except (ValueError, KeyError, TypeError) as e:
+                raise DataIntegrityError(f"Data format error in record {dic}: {e}")
+        return note_list
+    except (OSError, ValueError, yaml.YAMLError, DataIntegrityError) as e:
+        print("\nNotes load failed:", e)
+        return []
 
 
 def main_menu():
@@ -129,14 +165,30 @@ def main_menu():
     return get_value_from_console(InputType, "Enter your choice: ")
 
 
+def archive_check(pathname):
+    archive = Path(pathname)
+    if archive.is_file():
+        return True
+    return False
+
+
 def main():
     yaml.add_representer(datetime, datetime_representer)
     yaml.add_representer(NoteStatus, enum_representer)
+    file_name = "notes_stage_4.yaml"
+    file_path = Path(file_name)
+    global notes
+    if not file_path.is_file():
+        print(f"File {file_path} wasn't found. A new file is created.")
+    else:
+        notes = load_notes_from_file(file_path)
+    if notes:
+        print('\n', notes)
     while True:
         choice = main_menu()
         if choice == '2':
             if notes:
-                print(save_notes_to_file(notes, "notes_stage_4.yaml"))
+                print('\n', save_notes_to_file(notes, file_name))
             break
         if choice == '1':
             notes.append(create_note())
