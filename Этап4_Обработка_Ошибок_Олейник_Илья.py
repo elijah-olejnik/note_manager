@@ -155,7 +155,8 @@ def main_menu():
     if notes:
         print(
             "\n1. Create note\n"
-            "\n2. Save notes and quit\n"
+            "2. Save notes and quit\n"
+            "3. Quit without saving\n"
         )
     else:
         print(
@@ -179,6 +180,10 @@ def main():
     file_path = Path(file_name)
     global notes
     if not file_path.is_file():
+        try:
+            with open(file_name, 'w'): pass
+        except (OSError, ValueError) as e:
+            print("Can't create a new file:", e)
         print(f"File {file_path} wasn't found. A new file is created.")
     else:
         notes = load_notes_from_file(file_path)
@@ -186,11 +191,13 @@ def main():
         print('\n', notes)
     while True:
         choice = main_menu()
-        if choice == '2':
+        if choice == '3':
+            break
+        elif choice == '2':
             if notes:
                 print('\n', save_notes_to_file(notes, file_name))
             break
-        if choice == '1':
+        elif choice == '1':
             notes.append(create_note())
             print("Note added\n\n", notes)
 
