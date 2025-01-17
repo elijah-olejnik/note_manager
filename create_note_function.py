@@ -21,8 +21,9 @@ def is_date_acceptable(str_date="") -> Tuple[bool, Union[datetime, ValueError]]:
             if date < datetime.now():
                 raise ValueError("The deadline can be only in the future. Try Again.")
             return True, date
-        except ValueError as e:
-            return False, e
+        except ValueError:
+            continue
+    return False, ValueError(f"The date should be in\n{'\n'.join(fmt for fmt in date_fmts)}")
 
 
 def create_note():
@@ -41,7 +42,8 @@ def create_note():
         "created_date" : datetime.now(),
         "issue_date" : [
             datetime.now() + timedelta(weeks=1),
-            "Enter the deadline date (dd-mm-yyyy)\n"
+            "Enter the deadline date in appropriate format\n"
+            f"{'\n'.join(fmt for fmt in date_fmts)}\n"
             "or press Enter to leave the default value (1 week): "
         ]
     }
