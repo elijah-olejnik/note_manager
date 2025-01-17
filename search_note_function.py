@@ -140,10 +140,9 @@ def main():
                         "3 - for postponed\n\n"
                         "Enter the number: "
                     ))
-                    if user_input not in range(0, 3):
+                    if user_input not in range(0, 4):
                         raise ValueError("The number is not in range")
                     state = Status(user_input)
-                    print(state)
                     break
                 except ValueError as e:
                     print("\n", e)
