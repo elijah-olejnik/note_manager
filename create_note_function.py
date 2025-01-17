@@ -4,14 +4,13 @@ from typing import Tuple, Union
 import curses
 import femto
 
+date_fmts = ("%d-%m-%Y", "%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y")
+
 
 class Status(Enum):
     ACTIVE = 0
     COMPLETED = 1
     POSTPONED = 2
-
-
-date_fmts = ("%d-%m-%Y", "%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y")
 
 
 def is_date_acceptable(str_date="") -> Tuple[bool, Union[datetime, ValueError]]:
