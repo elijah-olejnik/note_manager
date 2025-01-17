@@ -93,3 +93,17 @@ All logic is splitted to 3 modules:
 
 Notes loading and saving to a file changed to YAML (notes.yaml file is needed). Also, it is better
 tu run this program inside a terminal, because of curses library use.
+### Stage 4
+#### Этап4_Сохранение_Заметок_Фамилия_Имя.py
+This script saves notes to a YAML file
+#### Этап4_Загрузка_Заметок_Фамилия_Имя.py
+This script loads the notes from a YAML file
+#### Этап4_Обработка_Ошибок_Фамилия_Имя.py
+This script saves and loads notes with error handling logic
+#### Этап4_Добавление_Данных_Фамилия_Имя.py
+This script appends notes to a YAML file
+#### Этап4_JSON_Формат_Фамилия_Имя.py
+This script saves notes to a JSON file
+#### Этап4_Финальное_Олейник_Илья
+This is the Note Manager program version containing all received knowledge at the moment. 
+Also, I added some meme music playing while the user edits the note text =)
