@@ -253,6 +253,8 @@ def display_notes(notes_list, params=None, per_page=3):
     if len(notes_list) < 1:
         print("No notes yet\n")
         return
+    if not params:
+        params = ['y', 'c']
     notes_sorted = sorted(notes_list, key=lambda x: x["created_date"]) if params[1] == 'c' else (
         sorted(notes_list, key=lambda x: (x["issue_date"] == datetime.min, x["issue_date"]), reverse=True)
     )
