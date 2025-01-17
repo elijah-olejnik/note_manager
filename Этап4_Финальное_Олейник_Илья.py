@@ -1,7 +1,9 @@
 import curses
 import dataclasses
 import sys
+import threading
 import warnings
+import pygame
 import yaml
 import colorama
 from colorama import Style, Fore
@@ -11,7 +13,6 @@ from enum import Enum
 from pathlib import Path
 from femto import femto
 
-# TODO: ДОРОГОЙ ДНЕВНИК )))
 datetime_fmt = "%d-%m-%Y %H:%M"
 
 
@@ -193,12 +194,19 @@ class InputType(Enum):
     DATE = 4
 
 
-# NoteManager CLI and a set of terminal utility functions
 class NoteManagerCLI:
     def __init__(self, archive=""):
         self._archive_path = archive
         self._note_manager = NoteManager(NoteManager.import_yaml(self._archive_path)) \
             if self._archive_check(archive) else NoteManager([])
+
+    @staticmethod
+    def _nocturne(): # Дорогой дневник
+        pygame.mixer.init()
+        pygame.mixer.music.load("Chopin-NocturneNo1.mp3")
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
 
     @staticmethod
     def _archive_check(pathname):
@@ -296,6 +304,15 @@ class NoteManagerCLI:
             else:
                 print("Invalid choice. Please enter 'n', 'p', or 'q'.")
 
+    @staticmethod
+    def stop_nocturne(): # Дорогой дневник
+        return pygame.mixer.music.stop()
+
+    @classmethod
+    def start_nocturne(cls): # Дорогой дневник
+        audio_thread = threading.Thread(target=cls._nocturne)
+        audio_thread.start()
+
     def _display_all(self):
         params = self._display_submenu()
         self._display_notes(
@@ -318,7 +335,9 @@ class NoteManagerCLI:
         for key, value in note_args.items():
             match key:
                 case "content":
+                    self.start_nocturne()
                     note_args[key] = self._get_value_from_console(InputType.TEXT)
+                    self.stop_nocturne()
                 case "status":
                     note_args[key] = self._state_submenu()
                 case ("issue_date"):
@@ -330,7 +349,7 @@ class NoteManagerCLI:
                     note_args[key] = self._get_value_from_console(InputType.STR, value).strip()
         note = Note(**note_args)
         self._note_manager.add_note(note)
-        self._save_notes()
+        self._save_note(note)
         print('\n', "Note created:", '\n')
         self._print_note_full(note)
 
@@ -387,10 +406,9 @@ class NoteManagerCLI:
         if not self._note_manager.export_yaml(self._note_manager.notes, self._archive_path):
             print("\nExport to file failed.\n")
 
-    # TODO: APPEND ONE NOTE TO A FILE
-    # def _save_note(self):
-    #     if not self._note_manager.export_yaml(self._note_manager.notes, self._archive_path, rewrite=False):
-    #         print("\nFailed to save note.\n")
+    def _save_note(self, note):
+        if not self._note_manager.export_yaml([note], self._archive_path, rewrite=False):
+            print("\nFailed to save note.\n")
 
     def _delete_note(self):
         note_id = self._get_value_from_console(InputType.INT, "Enter the note ID to delete: ")
