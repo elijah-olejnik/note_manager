@@ -64,10 +64,11 @@ def str_to_date(str_date="") -> Tuple[bool, Union[datetime, ValueError]]:
         try:
             date = datetime.strptime(str_date, fmt)
             if date < datetime.now():
-                raise ValueError("\nThe deadline can be only in the future. Try Again.\n")
+                raise ValueError("The deadline can be only in the future. Try Again.")
             return True, date
-        except ValueError as e:
-            return False, e
+        except ValueError:
+            continue
+    return False, ValueError(f"The date should be in\n{'\n'.join(fmt for fmt in date_fmts)}")
 
 
 def get_value_from_console(input_type, prompt = "", enum_ = Status):
