@@ -273,6 +273,15 @@ class NoteManagerCLI:
             except (KeyError, ValueError) as e:
                 print('\n', e, '\n')
 
+    @staticmethod
+    def _stop_nocturne():  # Дорогой дневник
+        return pygame.mixer.music.stop()
+
+    @classmethod
+    def _start_nocturne(cls):  # Дорогой дневник
+        audio_thread = threading.Thread(target=cls._nocturne)
+        audio_thread.start()
+
     @classmethod
     def _display_notes(cls, notes_list, display_full=True, per_page=3):
         if not notes_list:
@@ -304,15 +313,6 @@ class NoteManagerCLI:
             else:
                 print("Invalid choice. Please enter 'n', 'p', or 'q'.")
 
-    @staticmethod
-    def stop_nocturne(): # Дорогой дневник
-        return pygame.mixer.music.stop()
-
-    @classmethod
-    def start_nocturne(cls): # Дорогой дневник
-        audio_thread = threading.Thread(target=cls._nocturne)
-        audio_thread.start()
-
     def _display_all(self):
         params = self._display_submenu()
         self._display_notes(
@@ -335,9 +335,9 @@ class NoteManagerCLI:
         for key, value in note_args.items():
             match key:
                 case "content":
-                    self.start_nocturne()
+                    self._start_nocturne()
                     note_args[key] = self._get_value_from_console(InputType.TEXT)
-                    self.stop_nocturne()
+                    self._stop_nocturne()
                 case "status":
                     note_args[key] = self._state_submenu()
                 case ("issue_date"):
@@ -374,10 +374,12 @@ class NoteManagerCLI:
                             continue
                         self._note_manager.notes[i].title = input_value
                     case '3':
+                        self._start_nocturne()
                         input_value = self._get_value_from_console(
                             InputType.TEXT,
                             self._note_manager.notes[i].content
                         )
+                        self._stop_nocturne()
                         if not self._user_confirmation():
                             continue
                         self._note_manager.notes[i].content = input_value
