@@ -16,7 +16,6 @@ class NoteManager:
         return sorted(notes, key=lambda x: x.created_date, reverse=descending) if by_created else \
             sorted(notes, key=lambda x: (x.issue_date == datetime.min, x.issue_date), reverse=True)
 
-
     @property
     def notes(self):
         return self._notes
@@ -52,15 +51,15 @@ class NoteManager:
     def notes_count(self):
         return len(self._notes)
 
-    def add_note(self, note):
+    def append_note(self, note):
         self._notes.append(note)
 
-    def filter_notes(self, keys=None, state=None):
+    def search_notes(self, keys=None, state=None):
         found_indexes = self._get_notes_idx_by_filter(keys, state)
         return [self._notes[i] for i in found_indexes] if found_indexes else []
 
-    def delete_filtered(self, name=None, state=None):
-        found_indexes = self._get_notes_idx_by_filter(name, state)
+    def delete_filtered(self, keys=None, state=None):
+        found_indexes = self._get_notes_idx_by_filter(keys, state)
         if not found_indexes:
             return False
         for i in sorted(found_indexes, reverse=True):
@@ -68,11 +67,12 @@ class NoteManager:
         return True
 
     def clear(self):
-        if len(self._notes) > 0:
+        if self._notes:
             self._notes.clear()
 
-    # Notes deadline check
     def get_urgent_notes_sorted(self):
+        if not self._notes:
+            return None
         missed_dl = []
         today_dl = []
         oneday_dl = []

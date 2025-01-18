@@ -4,6 +4,7 @@ from dataclasses import asdict
 from yaml import YAMLError
 from enums import NoteStatus
 from custom_exceptions import DataIntegrityError, FileIOError
+from data.note import Note
 
 
 datetime_fmt = "%d-%m-%Y %H:%M"
