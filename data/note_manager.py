@@ -1,5 +1,8 @@
+from dataclasses import asdict
 from datetime import datetime
 from utils.enums import NoteStatus
+from utils.custom_exceptions import DataIntegrityError
+from note import Note
 
 
 class NoteManager:
@@ -8,6 +11,22 @@ class NoteManager:
 
     def __str__(self):
         return self._notes.__str__()
+
+    @staticmethod
+    def _from_dict(note_dict):
+        try:
+            note = Note(
+                content=note_dict["content"],
+                created_date=datetime.fromisoformat(note_dict["created_date"]),
+                id_=note_dict["id_"],
+                issue_date=datetime.fromisoformat(note_dict["issue_date"]),
+                status=NoteStatus[note_dict["status"]],
+                title=note_dict["title"],
+                username=note_dict["username"]
+            )
+            return note
+        except(ValueError, KeyError, TypeError) as e:
+            raise DataIntegrityError(f"Data format error in record {note_dict}: {e}")
 
     @staticmethod
     def sort_notes(notes, by_created=True, descending=True):
@@ -19,6 +38,21 @@ class NoteManager:
     @property
     def notes(self):
         return self._notes
+
+    def import_from_dicts(self, note_dicts):
+        if not note_dicts:
+            raise ValueError("Failed to import notes from dicts: it's empty.")
+        required_fields = ("content", "created_date", "id_", "issue_date", "status", "title", "username")
+        for d in note_dicts:
+            if not all(field in d for field in required_fields):
+                raise DataIntegrityError(f"Missing required fields in record: {d}")
+            try:
+                self._notes.append(self._from_dict(d))
+            except DataIntegrityError as e:
+                raise DataIntegrityError(f"Failed to import notes from dicts: {e}")
+
+    def notes_as_dicts(self):
+        return [asdict(note) for note in self._notes]
 
     def get_note_idx_by_id(self, id_):
         idx = -1
