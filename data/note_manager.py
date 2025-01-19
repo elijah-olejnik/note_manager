@@ -1,8 +1,8 @@
+from utils.custom_exceptions import DataIntegrityError
+from utils.enums import NoteStatus
+from data.note import Note
 from dataclasses import asdict
 from datetime import datetime
-from utils.enums import NoteStatus
-from utils.custom_exceptions import DataIntegrityError
-from note import Note
 
 
 class NoteManager:
@@ -39,7 +39,7 @@ class NoteManager:
     def notes(self):
         return self._notes
 
-    def import_from_dicts(self, note_dicts):
+    def import_notes_from_dicts(self, note_dicts):
         if not note_dicts:
             raise ValueError("Failed to import notes from dicts: it's empty.")
         required_fields = ("content", "created_date", "id_", "issue_date", "status", "title", "username")
@@ -51,22 +51,22 @@ class NoteManager:
             except DataIntegrityError as e:
                 raise DataIntegrityError(f"Failed to import notes from dicts: {e}")
 
-    def notes_as_dicts(self):
+    def export_notes_as_dicts(self):
         return [asdict(note) for note in self._notes]
 
-    def get_note_idx_by_id(self, id_):
+    def get_note_index_by_id(self, id_):
         idx = -1
         for i, note in enumerate(self._notes):
             if note.id_ == id_:
                 idx = i
         return idx
 
-    def _get_notes_idx_by_filter(self, keys=None, state=None):
+    def _get_notes_idx_by_filter(self, keys=None, status=None):
         if not self._notes:
             return []
         filtered_indexes = set()
         for i, note in enumerate(self._notes):
-            status_match = (state is None or note.status == state)
+            status_match = (status is None or note.status == status)
             keyword_match = False
             if keys:
                 for key in keys:
@@ -82,9 +82,6 @@ class NoteManager:
                 filtered_indexes.add(i)
         return filtered_indexes
 
-    def notes_count(self):
-        return len(self._notes)
-
     def append_note(self, note):
         self._notes.append(note)
 
@@ -92,17 +89,13 @@ class NoteManager:
         found_indexes = self._get_notes_idx_by_filter(keys, state)
         return [self._notes[i] for i in found_indexes] if found_indexes else []
 
-    def delete_filtered(self, keys=None, state=None):
-        found_indexes = self._get_notes_idx_by_filter(keys, state)
+    def delete_by_state(self, state):
+        found_indexes = self._get_notes_idx_by_filter(status=state)
         if not found_indexes:
             return False
         for i in sorted(found_indexes, reverse=True):
             del self._notes[i]
         return True
-
-    def clear(self):
-        if self._notes:
-            self._notes.clear()
 
     def get_urgent_notes_sorted(self):
         if not self._notes:

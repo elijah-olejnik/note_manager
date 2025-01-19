@@ -6,12 +6,9 @@ from enums import NoteStatus
 from custom_exceptions import FileIOError
 
 
-datetime_fmt = "%d-%m-%Y %H:%M"
-
-
 def str_to_deadline(str_date):
     try:
-        date = datetime.strptime(str_date, datetime_fmt)
+        date = datetime.strptime(str_date, "%d-%m-%Y %H:%M")
         if date <= (datetime.now()):
             raise ValueError("The deadline can be only in the future.")
         return date
