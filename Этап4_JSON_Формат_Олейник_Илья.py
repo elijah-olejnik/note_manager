@@ -111,7 +111,7 @@ def save_notes_json(notes_list, filename):
     if not notes_list:
         return "No notes to save"
     try:
-        with open(filename, 'w') as file_:
+        with open(filename, 'w', encoding='utf-8') as file_:
             json.dump(notes_list, file_, cls=NoteEncoder, indent=4, ensure_ascii=False)
         return "Notes are successfully saved"
     except (ValueError, OSError) as e:
