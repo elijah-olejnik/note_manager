@@ -76,7 +76,7 @@ class NoteManager:
     def import_yaml(filename):
         required_fields = ("content", "created_date", "id_", "issue_date", "status", "title", "username")
         try:
-            with open(filename, 'r') as file:
+            with open(filename, 'r', encoding='utf-8') as file:
                 import_list = yaml.safe_load(file)
             if not import_list:
                 raise ValueError(f"File {filename} is empty!")
@@ -108,8 +108,8 @@ class NoteManager:
             return False
         export_list = [dataclasses.asdict(note) for note in notes]
         try:
-            with open(filename, 'w' if rewrite else 'a') as file:
-                yaml.dump(export_list, file)
+            with open(filename, 'w' if rewrite else 'a', encoding='utf-8') as file:
+                yaml.dump(export_list, file, allow_unicode=True)
             return True
         except (OSError, ValueError) as e:
             warnings.warn(e)

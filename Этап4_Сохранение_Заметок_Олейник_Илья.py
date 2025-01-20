@@ -108,8 +108,8 @@ def save_notes_to_file(note_list, filename):
     if not note_list:
         return "No notes to save"
     try:
-        with open(filename, 'w') as file:
-            yaml.dump(note_list, file)
+        with open(filename, 'w', encoding='utf-8') as file:
+            yaml.dump(note_list, file, allow_unicode=True)
         return "Notes are successfully saved"
     except (OSError, ValueError) as e:
         return e

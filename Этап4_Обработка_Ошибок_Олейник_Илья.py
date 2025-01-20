@@ -114,8 +114,8 @@ def save_notes_to_file(note_list, filename):
     if not note_list:
         return "No notes to save. Create a note first"
     try:
-        with open(filename, 'w') as file:
-            yaml.dump(note_list, file)
+        with open(filename, 'w', encoding='utf-8') as file:
+            yaml.dump(note_list, file, allow_unicode=True)
         return "Notes are successfully saved"
     except (OSError, ValueError) as e:
         return e.__str__()
@@ -124,7 +124,7 @@ def save_notes_to_file(note_list, filename):
 def load_notes_from_file(filename):
     required_fields = ("content", "created_date", "id_", "issue_date", "status", "title", "username")
     try:
-        with open(filename, 'r') as file:
+        with open(filename, 'r', encoding='utf-8') as file:
             import_list = yaml.safe_load(file)
         if not import_list:
             raise ValueError(f"File {filename} is empty! You should create and save notes first.")

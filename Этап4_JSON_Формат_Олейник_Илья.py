@@ -112,7 +112,7 @@ def save_notes_json(notes_list, filename):
         return "No notes to save"
     try:
         with open(filename, 'w') as file_:
-            file_.write(json.dumps(notes_list, cls=NoteEncoder, indent=4))
+            json.dump(notes_list, file_, cls=NoteEncoder, indent=4, ensure_ascii=False)
         return "Notes are successfully saved"
     except (ValueError, OSError) as e:
         return "The note manager can't save changes:", e
