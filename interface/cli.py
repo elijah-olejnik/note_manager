@@ -1,10 +1,10 @@
-from utils import NoteStatus, InputType, str_to_date, date_to_str, generate_id
+from curses import wrapper
+from datetime import datetime
+import colorama
+from colorama import Fore, Style
 from data import NoteManager, Note
 from interface.femto import femto
-from colorama import Fore, Style
-from datetime import datetime
-from curses import wrapper
-import colorama
+from utils import NoteStatus, InputType, str_to_date, date_to_str, generate_id
 
 
 class NoteManagerCLI:
@@ -27,7 +27,7 @@ class NoteManagerCLI:
     def _print_note_full(note):
         row_format = "{:<20} | {:<60}"
         print("-" * 77)
-        print(row_format.format(Fore.CYAN + "Note ID" + Style.RESET_ALL, note.id_))
+        print(row_format.format(Fore.CYAN + "Note ID" + Style.RESET_ALL, str(note.id_)))
         print(row_format.format(Fore.GREEN + "Username" + Style.RESET_ALL, note.username))
         print(row_format.format(Fore.YELLOW + "Title" + Style.RESET_ALL, note.title))
         print(row_format.format(Fore.MAGENTA + "Content" + Style.RESET_ALL, "\n" + note.content))
@@ -38,7 +38,7 @@ class NoteManagerCLI:
 
     @staticmethod
     def _print_note_short(note, deadline=""):
-        print(f"{Fore.CYAN}Note ID #{Style.RESET_ALL}{note.id_}: {note.title} {Fore.RED}{deadline}\n\n")
+        print(f"{Fore.CYAN}{date_to_str(note.created_date, False)}{Style.RESET_ALL} {note.title} {Fore.RED}{deadline}\n\n")
 
     @staticmethod
     def _get_value_from_console(input_type, prompt="", enum_=None):
@@ -63,6 +63,10 @@ class NoteManagerCLI:
                         return user_input
             except (KeyError, ValueError) as e:
                 print('\n', e, '\n')
+
+    def _list_notes(self):
+        for i, note in enumerate(self._note_manager.notes):
+            self._print_note_short(note)
 
     def _display_notes(self, notes_list, display_full=True, per_page=3):
         if not notes_list:
@@ -133,11 +137,37 @@ class NoteManagerCLI:
         print('\n', "Note created:", '\n')
         self._print_note_full(note)
 
+    def _choose_note(self):
+        notes = []
+        while True:
+            choice = self._get_value_from_console(InputType.STR, "\n1. Search\n2.Show all\n\nChoose: ")
+            if choice == '1':
+                notes = self._search_notes()
+                break
+            elif choice == '2':
+                notes = self._note_manager.notes
+                break
+            continue
+        if not notes:
+            print("\nNo notes found.\n")
+            return None
+        while True:
+            i = self._note_choose_submenu(notes) - 1
+            if i not in range(0, len(notes)):
+                print("\nWrong number.\n")
+                continue
+            try:
+                note = self._note_manager.get_note_by_id(notes[i].id_)
+                print("\nYou've chosen this note:\n\n")
+                self._print_note_full(note)
+                return note
+            except ValueError as e:
+                print(e)
+                return None
+
     def _update_note(self):
-        note_id = self._get_value_from_console(InputType.INT, "\nEnter the note ID to edit: ")
-        i = self._note_manager.get_note_index_by_id(note_id)
-        if i == -1:
-            print(f"\nNote with ID#{note_id} not found.\n")
+        note = self._choose_note()
+        if not note:
             return
         while True:
             try:
@@ -147,52 +177,49 @@ class NoteManagerCLI:
                         input_value = self._get_value_from_console(InputType.STR, "Enter new username: ")
                         if not self._user_confirmation():
                             continue
-                        self._note_manager.notes[i].username = input_value
+                        note.username = input_value
                     case '2':
                         input_value = self._get_value_from_console(InputType.STR, "Enter new title: ")
                         if not self._user_confirmation():
                             continue
-                        self._note_manager.notes[i].title = input_value
+                        note.title = input_value
                     case '3':
                         input_value = self._get_value_from_console(
                             InputType.TEXT,
-                            self._note_manager.notes[i].content
+                            note.content
                         )
                         if not self._user_confirmation():
                             continue
-                        self._note_manager.notes[i].content = input_value
+                        note.content = input_value
                     case '4':
                         input_value = self._state_submenu()
                         if not self._user_confirmation():
                             continue
-                        self._note_manager.notes[i].status = input_value
+                        note.status = input_value
                     case '5':
                         input_value = self._get_value_from_console(InputType.DATE, "Enter new deadline date (dd-mm-yyyy hh:mm): ")
                         if not self._user_confirmation():
                             continue
-                        self._note_manager.notes[i].issue_date = input_value
+                        note.issue_date = input_value
                     case '6':
                         break
                     case _:
                         continue
                 self._note_manager.save_notes_to_file()
                 print("Note updated:\n")
-                self._print_note_full(self._note_manager.notes[i])
+                self._print_note_full(note)
             except ValueError as e:
                 print('\n', e, '\n')
                 continue
 
     def _delete_note(self):
-        note_id = self._get_value_from_console(InputType.INT, "Enter the note ID to delete: ")
-        i = self._note_manager.get_note_index_by_id(note_id)
-        if i == -1:
-            print(f"\nNote with ID#{note_id} not found.\n")
-            return
-        if not self._user_confirmation():
-            return
-        deleted = self._note_manager.notes.pop(i)
-        self._note_manager.save_notes_to_file()
-        print(f'\nNote #{deleted.id_} "{deleted.title}" deleted.')
+        note = self._choose_note()
+        try:
+            deleted = self._note_manager.delete_note_by_id(note.id_)
+            self._note_manager.save_notes_to_file()
+            print(f'\nNote #{deleted.id_} "{deleted.title}" deleted.')
+        except ValueError as e:
+            print(e)
 
     def _search_notes(self):
         while True:
@@ -205,13 +232,19 @@ class NoteManagerCLI:
                             input("Enter keywords, separated by ; : ").split(';')]
             state = None
             if command in ('1', '3'):
-                print("HERE")
                 state = self._state_submenu()
             notes = self._note_manager.filter_notes(keywords, state)
-            if len(notes) < 1:
+            if not notes < 1:
                 print("\nNo matches found\n")
                 continue
-            self._display_notes(notes)
+            return notes
+        return []
+
+    def _note_choose_submenu(self, notes):
+        print("\nChoose note\n\n")
+        for i, note in enumerate(notes):
+            print(Fore.YELLOW + str(i + 1) + Style.RESET_ALL, note.title, Fore.CYAN + date_to_str(note.created_date, False) + Style.RESET_ALL)
+        return self._get_value_from_console(InputType.INT, "\nEnter the note number: ")
 
     def _state_submenu(self):
         print(

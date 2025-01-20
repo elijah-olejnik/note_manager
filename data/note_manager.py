@@ -44,6 +44,13 @@ class NoteManager:
     def notes(self):
         return self._notes
 
+    def _get_note_index_by_id(self, id_):
+        idx = -1
+        for i, note in enumerate(self._notes):
+            if note.id_ == id_:
+                idx = i
+        return idx
+
     def _get_notes_indexes_by_filter(self, keys=None, status=None):
         if not self._notes:
             return []
@@ -80,19 +87,18 @@ class NoteManager:
     def export_notes_as_dicts(self):
         return [asdict(note) for note in self._notes] if self._notes else []
 
-    def get_note_index_by_id(self, id_):
-        idx = -1
-        for i, note in enumerate(self._notes):
-            if note.id_ == id_:
-                idx = i
-        return idx
-
     def append_note(self, note):
         self._notes.append(note)
         try:
-            export_to_yaml([asdict(note)], "", False)
+            export_to_yaml([asdict(note)], self.storage_path, False)
         except FileIOError as e:
-            warnings.warn(e)
+            warnings.warn(e) # noqa
+
+    def get_note_by_id(self, id_):
+        for note in self._notes:
+            if id_ == note.id_:
+                return note
+        raise ValueError(f"Note with ID {id_} not found.")
 
     def save_notes_to_file(self):
         try:
@@ -108,7 +114,7 @@ class NoteManager:
 
     def load_notes_from_file(self):
         if not self.storage_path.is_file():
-            warnings.warn(f"File {self.storage_path} wasn't found.")
+            warnings.warn(f"File {self.storage_path} not found.")
             try:
                 with open(self.storage_path, 'w'):
                     pass
@@ -126,6 +132,12 @@ class NoteManager:
     def filter_notes(self, keys=None, state=None):
         found_indexes = self._get_notes_indexes_by_filter(keys, state)
         return [self._notes[i] for i in found_indexes] if found_indexes else []
+
+    def delete_note_by_id(self, id_):
+        i = self._get_note_index_by_id(id_)
+        if i == -1:
+            raise ValueError(f"Note with ID {id_} not found.")
+        return self._notes.pop(i)
 
     def delete_by_state(self, state):
         found_indexes = self._get_notes_indexes_by_filter(status=state)
