@@ -1,1 +1,1 @@
-from cli import NoteManagerCLI
+from interface.cli import NoteManagerCLI

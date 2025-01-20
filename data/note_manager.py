@@ -1,5 +1,6 @@
 from utils import DataIntegrityError, NoteStatus, FileIOError
-from data import Note, export_to_yaml, import_from_yaml, export_to_json
+from data.file_io import export_to_yaml, import_from_yaml, export_to_json
+from data.note import Note
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
@@ -91,19 +92,19 @@ class NoteManager:
         try:
             export_to_yaml([asdict(note)], "", False)
         except FileIOError as e:
-            warnings.warn(e.__str__())
+            warnings.warn(e)
 
     def save_notes_to_file(self):
         try:
             export_to_yaml(self.export_notes_as_dicts(), self.storage_path)
         except (ValueError, FileIOError) as e:
-            warnings.warn(e.__str__)
+            warnings.warn(e)
 
     def save_notes_json(self):
         try:
             export_to_json(self.export_notes_as_dicts(), self.storage_path)
         except (ValueError, FileIOError) as e:
-            warnings.warn(e.__str__)
+            warnings.warn(e)
 
     def load_notes_from_file(self):
         if not self.storage_path.is_file():
@@ -120,7 +121,7 @@ class NoteManager:
             try:
                 self._notes = self.import_notes_from_dicts(import_from_yaml(self.storage_path))
             except (FileIOError, DataIntegrityError) as e:
-                warnings.warn(e.__str__)
+                warnings.warn(e)
 
     def filter_notes(self, keys=None, state=None):
         found_indexes = self._get_notes_indexes_by_filter(keys, state)

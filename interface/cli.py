@@ -1,6 +1,6 @@
+from utils import NoteStatus, InputType, str_to_date, date_to_str, generate_id
 from data import NoteManager, Note
 from interface.femto import femto
-from utils import NoteStatus, InputType, str_to_deadline
 from colorama import Fore, Style
 from datetime import datetime
 from curses import wrapper
@@ -32,19 +32,13 @@ class NoteManagerCLI:
         print(row_format.format(Fore.YELLOW + "Title" + Style.RESET_ALL, note.title))
         print(row_format.format(Fore.MAGENTA + "Content" + Style.RESET_ALL, "\n" + note.content))
         print(row_format.format(Fore.BLUE + "Status" + Style.RESET_ALL, note.status.name))
-        date_display_fmt = "%B %d, %Y %H:%M"
-        created = datetime.strftime(note.created_date, date_display_fmt)
-        print(row_format.format(Fore.RED + "Created" + Style.RESET_ALL, created))
-        if note.status not in (NoteStatus.TERMLESS, NoteStatus.COMPLETED):
-            deadline = datetime.strftime(note.issue_date, date_display_fmt)
-        else:
-            deadline = "NO DEADLINE"
-        print(row_format.format(Fore.RED + "Deadline" + Style.RESET_ALL, deadline))
+        print(row_format.format(Fore.RED + "Created" + Style.RESET_ALL, date_to_str(note.created_date, False)))
+        print(row_format.format(Fore.RED + "Deadline" + Style.RESET_ALL, date_to_str(note.issue_date, True)))
         print("-" * 77)
 
     @staticmethod
-    def _print_note_short(note):
-        print(f"{Fore.CYAN}Note ID #{Style.RESET_ALL}{note.id_}: {note.title}\n\n")
+    def _print_note_short(note, deadline=""):
+        print(f"{Fore.CYAN}Note ID #{Style.RESET_ALL}{note.id_}: {note.title} {Fore.RED}{deadline}\n\n")
 
     @staticmethod
     def _get_value_from_console(input_type, prompt="", enum_=None):
@@ -64,14 +58,13 @@ class NoteManagerCLI:
                             value = int(user_input)
                             return enum_(value)
                     case InputType.DATE:
-                        return str_to_deadline(user_input)
+                        return str_to_date(user_input)
                     case _:
                         return user_input
             except (KeyError, ValueError) as e:
                 print('\n', e, '\n')
 
-    @classmethod
-    def _display_notes(cls, notes_list, display_full=True, per_page=3):
+    def _display_notes(self, notes_list, display_full=True, per_page=3):
         if not notes_list:
             print("\nNo notes to display.\n")
             return
@@ -82,7 +75,7 @@ class NoteManagerCLI:
             end_index = start_index + per_page
             notes_to_display = notes_list[start_index:end_index]
             for n in notes_to_display:
-                cls._print_note_full(n) if display_full else cls._print_note_short(n)
+                self._print_note_full(n) if display_full else self._print_note_short(n)
             print(f"Page {page + 1} of {(total_notes + per_page - 1) // per_page}")
             print("n - next page, p - previous page, q - quit")
             choice = input("Enter choice: ").lower()
@@ -133,6 +126,8 @@ class NoteManagerCLI:
                         note_args[key] = self._get_value_from_console(InputType.DATE, value)
                 case _:
                     note_args[key] = self._get_value_from_console(InputType.STR, value).strip()
+        note_args["created_date"] = datetime.now()
+        note_args["id_"] = generate_id()
         note = Note(**note_args)
         self._note_manager.append_note(note)
         print('\n', "Note created:", '\n')
@@ -268,7 +263,10 @@ class NoteManagerCLI:
         return self._get_value_from_console(InputType.STR, "Enter your choice: ")
 
     def _main_menu(self):
-        self._deadline_check_and_notify()
+        if not self._note_manager.notes:
+            print(f"\n{Fore.YELLOW}No notes yet.{Style.RESET_ALL}")
+        else:
+            self._deadline_check_and_notify()
         print(
             f"{Fore.GREEN}\nMain menu{Style.RESET_ALL}\n\n"
             f"{Fore.YELLOW}1.{Style.RESET_ALL} Create note\n"
@@ -282,21 +280,23 @@ class NoteManagerCLI:
 
     def _deadline_check_and_notify(self):
         urgent_notes = self._note_manager.get_urgent_notes_sorted()
+        if not urgent_notes:
+            return
         if urgent_notes[0]:
-            print('\n', "Notes with missed deadline:", len(urgent_notes[0]), '\n')
+            print(f"\n{Fore.RED}Notes with missed deadline:", len(urgent_notes[0]), f"\n{Style.RESET_ALL}")
             for note in urgent_notes[0]:
-                print(f"ID #{note.id_}", note.title)
+                self._print_note_short(note, date_to_str(note.issue_date, True, note.status))
         if urgent_notes[1]:
-            print('\n', "Notes with today deadline:", len(urgent_notes[1]), '\n')
+            print("\nNotes with today deadline:", len(urgent_notes[1]), '\n')
             for note in urgent_notes[1]:
-                print(f"ID #{note.id_}", note.title)
+                self._print_note_short(note)
         if urgent_notes[2]:
-            print('\n', "Notes with deadline tomorrow:", len(urgent_notes[2]), '\n')
+            print("\nNotes with deadline tomorrow:", len(urgent_notes[2]), '\n')
             for note in urgent_notes[2]:
-                print(f"ID #{note.id_}", note.title)
+                self._print_note_short(note)
 
     def run(self):
-        print('\n', "Welcome to the note manager!")
+        print("\nWelcome to the note manager!")
         while True:
             command = self._main_menu()
             match command:
