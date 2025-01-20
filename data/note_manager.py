@@ -11,7 +11,7 @@ class NoteManager:
     def __init__(self):
         self._notes = []
         self.storage_path = Path("notes.yaml")
-        self.load_notes()
+        self.load_notes_from_file()
 
     def __str__(self):
         return self._notes.__str__()
@@ -93,7 +93,7 @@ class NoteManager:
         except FileIOError as e:
             warnings.warn(e.__str__())
 
-    def save_notes(self):
+    def save_notes_to_file(self):
         try:
             export_to_yaml(self.export_notes_as_dicts(), self.storage_path)
         except (ValueError, FileIOError) as e:
@@ -105,7 +105,7 @@ class NoteManager:
         except (ValueError, FileIOError) as e:
             warnings.warn(e.__str__)
 
-    def load_notes(self):
+    def load_notes_from_file(self):
         if not self.storage_path.is_file():
             warnings.warn(f"File {self.storage_path} wasn't found.")
             try:

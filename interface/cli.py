@@ -180,31 +180,23 @@ class NoteManagerCLI:
                         break
                     case _:
                         continue
-                self._save_notes()
+                self._note_manager.save_notes_to_file()
                 print("Note updated:\n")
                 self._print_note_full(self._note_manager.notes[i])
             except ValueError as e:
                 print('\n', e, '\n')
                 continue
 
-    def _save_notes(self):
-        if not self._note_manager.export_yaml(self._note_manager.notes, self._archive_path):
-            print("\nExport to file failed.\n")
-
-    def _save_note(self, note):
-        if not self._note_manager.export_yaml([note], self._archive_path, rewrite=False):
-            print("\nFailed to save note.\n")
-
     def _delete_note(self):
         note_id = self._get_value_from_console(InputType.INT, "Enter the note ID to delete: ")
-        i = self._note_manager.get_note_idx_by_id(note_id)
+        i = self._note_manager.get_note_index_by_id(note_id)
         if i == -1:
             print(f"\nNote with ID#{note_id} not found.\n")
             return
         if not self._user_confirmation():
             return
         deleted = self._note_manager.notes.pop(i)
-        self._save_notes()
+        self._note_manager.save_notes_to_file()
         print(f'\nNote #{deleted.id_} "{deleted.title}" deleted.')
 
     def _search_notes(self):
@@ -248,7 +240,7 @@ class NoteManagerCLI:
                 "Enter display options, only 3 supported\n"
                 "(e.g. for full-creation-ascending enter fcd): "
             ).lower())
-            if len(param_set) < 3 or not param_set.issubset(set("acdfis")):
+            if len(param_set) < 3 or not param_set.issubset(set("acdfis")): # noqa
                 continue
             else:
                 return param_set
