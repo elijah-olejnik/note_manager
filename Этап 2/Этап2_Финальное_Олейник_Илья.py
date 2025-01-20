@@ -120,7 +120,7 @@ class NoteManager:
 
     def _load_from_json(self):
         try:
-            with open("../notes.json") as f:
+            with open("notes.json") as f:
                 import_list = json.loads(f.read(), object_hook=note_decoder)
             for note_dic in import_list:
                 note = Note(note_dic)
@@ -133,7 +133,7 @@ class NoteManager:
         for note in self._notes:
             export_list.append(note.as_dictionary())
         try:
-            with open("../notes.json", 'w') as file_:
+            with open("notes.json", 'w') as file_:
                 file_.write(json.dumps(export_list, cls=NoteEncoder, indent=4))
         except (ValueError, OSError) as e:
             print("The note manager can't save changes:", e)
