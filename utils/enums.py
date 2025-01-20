@@ -14,3 +14,8 @@ class InputType(Enum):
     TEXT = 2
     ENUM_VAL = 3
     DATE = 4
+
+
+class FileType(Enum):
+    YAML = 0
+    JSON = 1

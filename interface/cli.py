@@ -1,23 +1,16 @@
+from data import NoteManager, Note
+from interface.femto import femto
+from utils import NoteStatus, InputType, str_to_deadline
+from colorama import Fore, Style
+from datetime import datetime
+from curses import wrapper
+import colorama
+
+
 class NoteManagerCLI:
-    def __init__(self, archive=""):
-        self._archive_path = archive
-        self._note_manager = NoteManager(NoteManager.import_yaml(self._archive_path)) \
-            if self._archive_check(archive) else NoteManager([])
-
-    @staticmethod
-    def _nocturne(): # Дорогой дневник
-        pygame.mixer.init()
-        pygame.mixer.music.load("Chopin-NocturneNo1.mp3")
-        pygame.mixer.music.play()
-        while pygame.mixer.music.get_busy():
-            pygame.time.Clock().tick(10)
-
-    @staticmethod
-    def _archive_check(pathname):
-        archive = Path(pathname)
-        if archive.is_file() and archive.stat().st_size > 0:
-            return True
-        return False
+    def __init__(self):
+        self._note_manager = NoteManager()
+        colorama.init(autoreset=True)
 
     @staticmethod
     def _user_confirmation():
@@ -57,7 +50,7 @@ class NoteManagerCLI:
     def _get_value_from_console(input_type, prompt="", enum_=None):
         while True:
             try:
-                user_input = input(prompt).strip() if input_type != InputType.TEXT else curses.wrapper(femto, prompt)
+                user_input = input(prompt).strip() if input_type != InputType.TEXT else wrapper(femto, prompt)
                 if not user_input and input_type != InputType.DATE:
                     continue
                 match input_type:
@@ -71,20 +64,11 @@ class NoteManagerCLI:
                             value = int(user_input)
                             return enum_(value)
                     case InputType.DATE:
-                        return NoteManager.str_to_deadline(user_input)
+                        return str_to_deadline(user_input)
                     case _:
                         return user_input
             except (KeyError, ValueError) as e:
                 print('\n', e, '\n')
-
-    @staticmethod
-    def _stop_nocturne():  # Дорогой дневник
-        return pygame.mixer.music.stop()
-
-    @classmethod
-    def _start_nocturne(cls):  # Дорогой дневник
-        audio_thread = threading.Thread(target=cls._nocturne)
-        audio_thread.start()
 
     @classmethod
     def _display_notes(cls, notes_list, display_full=True, per_page=3):
@@ -139,9 +123,7 @@ class NoteManagerCLI:
         for key, value in note_args.items():
             match key:
                 case "content":
-                    self._start_nocturne()
                     note_args[key] = self._get_value_from_console(InputType.TEXT)
-                    self._stop_nocturne()
                 case "status":
                     note_args[key] = self._state_submenu()
                 case ("issue_date"):
@@ -152,14 +134,13 @@ class NoteManagerCLI:
                 case _:
                     note_args[key] = self._get_value_from_console(InputType.STR, value).strip()
         note = Note(**note_args)
-        self._note_manager.add_note(note)
-        self._save_note(note)
+        self._note_manager.append_note(note)
         print('\n', "Note created:", '\n')
         self._print_note_full(note)
 
     def _update_note(self):
         note_id = self._get_value_from_console(InputType.INT, "\nEnter the note ID to edit: ")
-        i = self._note_manager.get_note_idx_by_id(note_id)
+        i = self._note_manager.get_note_index_by_id(note_id)
         if i == -1:
             print(f"\nNote with ID#{note_id} not found.\n")
             return
@@ -178,12 +159,10 @@ class NoteManagerCLI:
                             continue
                         self._note_manager.notes[i].title = input_value
                     case '3':
-                        self._start_nocturne()
                         input_value = self._get_value_from_console(
                             InputType.TEXT,
                             self._note_manager.notes[i].content
                         )
-                        self._stop_nocturne()
                         if not self._user_confirmation():
                             continue
                         self._note_manager.notes[i].content = input_value

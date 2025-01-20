@@ -1,23 +1,17 @@
-import warnings
-from utils.custom_exceptions import DataIntegrityError
-from utils.enums import NoteStatus
-from data.note import Note
+from utils import DataIntegrityError, NoteStatus, FileIOError
+from data import Note, export_to_yaml, import_from_yaml, export_to_json
 from dataclasses import asdict
 from datetime import datetime
+from pathlib import Path
+from uuid import UUID
+import warnings
 
 
 class NoteManager:
-    def __init__(self, notes=None):
-        if not notes:
-            self._notes = []
-        elif type(notes[0]) == dict:
-            try:
-                self.import_notes_from_dicts(notes)
-            except (ValueError, DataIntegrityError) as e:
-                self._notes = []
-                warnings.warn(f"The note list is empty, you can only create a new note: {e}")
-        else:
-            self._notes = notes
+    def __init__(self):
+        self._notes = []
+        self.storage_path = Path("notes.yaml")
+        self.load_notes()
 
     def __str__(self):
         return self._notes.__str__()
@@ -28,15 +22,26 @@ class NoteManager:
             note = Note(
                 content=note_dict["content"],
                 created_date=datetime.fromisoformat(note_dict["created_date"]),
-                id_=note_dict["id_"],
+                id_=UUID(note_dict["id_"]),
                 issue_date=datetime.fromisoformat(note_dict["issue_date"]),
-                status=NoteStatus[note_dict["status"]],
+                status=NoteStatus[note_dict["status"]], # noqa
                 title=note_dict["title"],
                 username=note_dict["username"]
             )
             return note
         except(ValueError, KeyError, TypeError) as e:
             raise DataIntegrityError(f"Data format error in record {note_dict}: {e}")
+
+    @staticmethod
+    def sort_notes(notes, by_created=True, descending=True):
+        if not notes:
+            return []
+        return sorted(notes, key=lambda x: x.created_date, reverse=descending) if by_created else \
+            sorted(notes, key=lambda x: (x.issue_date == datetime.min, x.issue_date), reverse=True)
+
+    @property
+    def notes(self):
+        return self._notes
 
     def _get_notes_indexes_by_filter(self, keys=None, status=None):
         if not self._notes:
@@ -59,17 +64,6 @@ class NoteManager:
                 filtered_indexes.add(i)
         return filtered_indexes
 
-    @staticmethod
-    def sort_notes(notes, by_created=True, descending=True):
-        if not notes:
-            return []
-        return sorted(notes, key=lambda x: x.created_date, reverse=descending) if by_created else \
-            sorted(notes, key=lambda x: (x.issue_date == datetime.min, x.issue_date), reverse=True)
-
-    @property
-    def notes(self):
-        return self._notes
-
     def import_notes_from_dicts(self, note_dicts):
         if not note_dicts:
             raise ValueError("Failed to import notes from dicts: it's empty.")
@@ -83,7 +77,7 @@ class NoteManager:
                 raise DataIntegrityError(f"Failed to import notes from dicts: {e}")
 
     def export_notes_as_dicts(self):
-        return [asdict(note) for note in self._notes]
+        return [asdict(note) for note in self._notes] if self._notes else []
 
     def get_note_index_by_id(self, id_):
         idx = -1
@@ -94,6 +88,39 @@ class NoteManager:
 
     def append_note(self, note):
         self._notes.append(note)
+        try:
+            export_to_yaml([asdict(note)], "", False)
+        except FileIOError as e:
+            warnings.warn(e.__str__())
+
+    def save_notes(self):
+        try:
+            export_to_yaml(self.export_notes_as_dicts(), self.storage_path)
+        except (ValueError, FileIOError) as e:
+            warnings.warn(e.__str__)
+
+    def save_notes_json(self):
+        try:
+            export_to_json(self.export_notes_as_dicts(), self.storage_path)
+        except (ValueError, FileIOError) as e:
+            warnings.warn(e.__str__)
+
+    def load_notes(self):
+        if not self.storage_path.is_file():
+            warnings.warn(f"File {self.storage_path} wasn't found.")
+            try:
+                with open(self.storage_path, 'w'):
+                    pass
+                warnings.warn("A new file is created.")
+            except OSError as e:
+                warnings.warn(f"Can't create a new file: {e}")
+            finally:
+                warnings.warn("The note list is empty.")
+        else:
+            try:
+                self._notes = self.import_notes_from_dicts(import_from_yaml(self.storage_path))
+            except (FileIOError, DataIntegrityError) as e:
+                warnings.warn(e.__str__)
 
     def filter_notes(self, keys=None, state=None):
         found_indexes = self._get_notes_indexes_by_filter(keys, state)

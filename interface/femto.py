@@ -1,9 +1,29 @@
 # This is my tiny console text editor
 # To use it on windows you should install windows-curses module
+from threading import Thread
 import curses
+import pygame
+
+
+def nocturne():  # Дорогой дневник
+    pygame.mixer.init()
+    pygame.mixer.music.load("Chopin-NocturneNo1.mp3")
+    pygame.mixer.music.play()
+    while pygame.mixer.music.get_busy():
+        pygame.time.Clock().tick(10)
+
+
+def start_nocturne():  # Дорогой дневник
+    audio_thread = Thread(target=nocturne)
+    audio_thread.start()
+
+
+def stop_nocturne():  # Дорогой дневник
+    return pygame.mixer.music.stop()
 
 
 def femto(screen, initial_text=""):
+    start_nocturne()
     header = (
         "Edit your note text. To exit and save text press Esc",
         ""
@@ -81,4 +101,5 @@ def femto(screen, initial_text=""):
                 cursor_x += 1
         # Ensure cursor is within bounds
         cursor_x = min(len(text[cursor_y]), cursor_x)
+    stop_nocturne()
     return '\n'.join(text)

@@ -1,4 +1,4 @@
-from utils.enums import NoteStatus
+from utils import NoteStatus
 from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
