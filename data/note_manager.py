@@ -9,6 +9,9 @@ import warnings
 
 
 class NoteManager:
+    """The NoteManager class represents a business-logic model
+    handling the notes adding, storing, sorting, filtering and removing.
+    """
     def __init__(self):
         self._notes = []
         self.storage_path = Path("notes.yaml")
@@ -19,6 +22,13 @@ class NoteManager:
 
     @staticmethod
     def _from_dict(note_dict):
+        """The function converts dictionary loaded from JSON or
+        YAML file to the Note class object and returns it.
+        Raises DataIntegrityError if conversion fails.
+        """
+        required_fields = ("content", "created_date", "id_", "issue_date", "status", "title", "username")
+        if not all(field in note_dict for field in required_fields):
+            raise DataIntegrityError(f"Missing required fields in record: {note_dict}")
         try:
             note = Note(
                 content=note_dict["content"],
@@ -35,6 +45,11 @@ class NoteManager:
 
     @staticmethod
     def sort_notes(notes, by_created=True, descending=True):
+        """The function sorts given list of notes by given bool arguments:
+
+        1. If by_created is False, sorting is done by the issue_date.
+        2. The list sorted descending (in case of date) goes from the newest note to the oldest one.
+        """
         if not notes:
             return []
         return sorted(notes, key=lambda x: x.created_date, reverse=descending) if by_created else \
@@ -42,9 +57,11 @@ class NoteManager:
 
     @property
     def notes(self):
+        """Gives access to the private list of Note objects stored in class."""
         return self._notes
 
     def _get_note_index_by_id(self, id_):
+        """Returns an index of the note list element if note.id_ and the given id_ are equal."""
         idx = -1
         for i, note in enumerate(self._notes):
             if note.id_ == id_:
@@ -75,10 +92,7 @@ class NoteManager:
     def import_notes_from_dicts(self, note_dicts):
         if not note_dicts:
             raise ValueError("Failed to import notes from dicts: it's empty.")
-        required_fields = ("content", "created_date", "id_", "issue_date", "status", "title", "username")
         for d in note_dicts:
-            if not all(field in d for field in required_fields):
-                raise DataIntegrityError(f"Missing required fields in record: {d}")
             try:
                 self._notes.append(self._from_dict(d))
             except DataIntegrityError as e:
