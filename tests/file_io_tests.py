@@ -9,13 +9,21 @@ from utils import FileIOError, NoteStatus
 class TestFileIO(unittest.TestCase):
     def test_import_from_yaml_valid(self):
         mock_data = """
-        - id: !!python/str '123e4567-e89b-12d3-a456-426614174000'
-          created_at: 2021-01-01T12:00:00
+        - id_: !!python/str '123e4567-e89b-12d3-a456-426614174000'
+          created_date: 2021-01-01T12:00:00
           status: ACTIVE
           content: 'Sample note content'
         """
         with patch('builtins.open', mock_open(read_data=mock_data)):
-            with patch('yaml.safe_load', return_value=[{'id': '123e4567-e89b-12d3-a456-426614174000', 'created_at': datetime(2021, 1, 1, 12, 0), 'status': 'ACTIVE', 'content': 'Sample note content'}]):
+            with patch(
+                    'yaml.safe_load',
+                    return_value=[{
+                        'id_': '123e4567-e89b-12d3-a456-426614174000',
+                        'created_date': datetime(2021, 1, 1, 12, 0),
+                        'status': 'ACTIVE',
+                        'content': 'Sample note content'
+                    }]
+            ):
                 result = import_from_yaml('dummy.yaml')
                 self.assertEqual(len(result), 1)
                 self.assertEqual(result[0]['content'], 'Sample note content')
@@ -27,7 +35,12 @@ class TestFileIO(unittest.TestCase):
                     import_from_yaml('dummy.yaml')
 
     def test_export_to_yaml_valid(self):
-        data = [{'id': UUID('123e4567-e89b-12d3-a456-426614174000'), 'created_at': datetime.now(), 'status': NoteStatus.ACTIVE, 'content': 'Sample note'}]
+        data = [{
+            'id_': UUID('123e4567-e89b-12d3-a456-426614174000'),
+            'created_date': datetime.now(),
+            'status': NoteStatus.ACTIVE,
+            'content': 'Sample note'
+        }]
         m = mock_open()
         with patch('builtins.open', m):
             export_to_yaml(data, 'dummy.yaml')
@@ -38,9 +51,21 @@ class TestFileIO(unittest.TestCase):
             export_to_yaml([], 'dummy.yaml')
 
     def test_import_from_json_valid(self):
-        mock_data = '[{"id": "123e4567-e89b-12d3-a456-426614174000", "created_at": "2021-01-01T12:00:00", "status": "ACTIVE", "content": "Sample note content"}]'
+        mock_data = (
+            '[{"id": "123e4567-e89b-12d3-a456-426614174000", '
+            '"created_date": "2021-01-01T12:00:00", '
+            '"status": "ACTIVE", "content": "Sample note content"}]'
+        )
         with patch('builtins.open', mock_open(read_data=mock_data)):
-            with patch('json.load', return_value=[{'id': '123e4567-e89b-12d3-a456-426614174000', 'created_at': '2021-01-01T12:00:00', 'status': 'ACTIVE', 'content': 'Sample note content'}]):
+            with patch(
+                    'json.load',
+                    return_value=[{
+                        'id': '123e4567-e89b-12d3-a456-426614174000',
+                        'created_date': '2021-01-01T12:00:00',
+                        'status': 'ACTIVE',
+                        'content': 'Sample note content'
+                    }]
+            ):
                 result = import_from_json('dummy.json')
                 self.assertEqual(len(result), 1)
                 self.assertEqual(result[0]['content'], 'Sample note content')
@@ -52,7 +77,12 @@ class TestFileIO(unittest.TestCase):
                     import_from_json('dummy.json')
 
     def test_export_to_json_valid(self):
-        data = [{'id': UUID('123e4567-e89b-12d3-a456-426614174000'), 'created_at': datetime.now(), 'status': NoteStatus.ACTIVE, 'content': 'Sample note'}]
+        data = [{
+            'id': UUID('123e4567-e89b-12d3-a456-426614174000'),
+            'created_date': datetime.now(),
+            'status': NoteStatus.ACTIVE,
+            'content': 'Sample note'
+        }]
         m = mock_open()
         with patch('builtins.open', m):
             export_to_json(data, 'dummy.json')
