@@ -18,7 +18,7 @@ def import_from_yaml(filename):
         raise FileIOError(f"Import from YAML file failed: {e}")
 
 
-def export_to_yaml(dicts, filename, rewrite = True):
+def export_to_yaml(dicts, filename, rewrite=True):
     def datetime_representer(dumper, data):
         return dumper.represent_scalar("tag:yaml.org,2002:str", data.isoformat())
     def enum_representer(dumper, data):
@@ -48,7 +48,7 @@ def import_from_json(filename):
         raise FileIOError(f"Import from JSON file failed: {e}")
 
 
-def export_to_json(dicts, filename):
+def export_to_json(dicts, filename, rewrite=True):
     class NoteEncoder(json.JSONEncoder):
         def default(self, obj):
             if isinstance(obj, Enum):
@@ -60,7 +60,7 @@ def export_to_json(dicts, filename):
     if not dicts:
         raise ValueError("You're trying to export an empty list.")
     try:
-        with open(filename, 'w', encoding='utf-8') as file:
+        with open(filename, 'w' if rewrite else 'a', encoding='utf-8') as file:
             json.dump(dicts, file, cls=NoteEncoder, indent=4, ensure_ascii=False) # type: ignore
     except (ValueError, OSError) as e:
         raise FileIOError(f"Export to JSON file failed: {e}")
