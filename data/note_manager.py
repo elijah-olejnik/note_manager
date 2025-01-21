@@ -125,7 +125,7 @@ class NoteManager:
                 warnings.warn("The note list is empty.")
         else:
             try:
-                self._notes = self.import_notes_from_dicts(import_from_yaml(self.storage_path))
+                self.import_notes_from_dicts(import_from_yaml(self.storage_path))
             except (FileIOError, DataIntegrityError) as e:
                 warnings.warn(e)
 
@@ -146,10 +146,6 @@ class NoteManager:
         for i in sorted(found_indexes, reverse=True):
             del self._notes[i]
         return True
-
-    def delete_all(self):
-        if self._notes:
-            self._notes.clear()
 
     def get_urgent_notes_sorted(self):
         if not self._notes:

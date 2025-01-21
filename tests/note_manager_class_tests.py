@@ -1,18 +1,17 @@
 import unittest
-import uuid
 from datetime import datetime, timedelta
-from time import strptime
-from unittest.mock import patch
+from pathlib import Path
 from uuid import uuid4
 from utils import NoteStatus
-from data import Note, NoteManager
+from data import NoteManager
 
 
 class TestNoteManager(unittest.TestCase):
     def setUp(self):
         self.note_manager = NoteManager()
-        self.note_manager.delete_all()
-        self.note_manager.storage_path = "test.yaml"
+        if self.note_manager.notes:
+            self.note_manager._notes.clear()
+        self.note_manager.storage_path = Path("test.yaml")
         self.note_dicts = [
             {
                 'id_' : str(uuid4()),
@@ -36,15 +35,27 @@ class TestNoteManager(unittest.TestCase):
 
     def test_dict_import_export(self):
         self.note_manager.import_notes_from_dicts(self.note_dicts)
-        notes_as_dicts = self.note_manager.export_notes_as_dicts()
-        for d in notes_as_dicts:
+        dicts_from_note_manager = self.note_manager.export_notes_as_dicts()
+        for d in dicts_from_note_manager:
             d['id_'] = str(d['id_'])
             d['status'] = d['status'].name
             d['created_date'] = d['created_date'].isoformat()
             d['issue_date'] = d['issue_date'].isoformat()
-        self.assertEqual(self.note_dicts, notes_as_dicts)
+        self.assertEqual(self.note_dicts, dicts_from_note_manager)
+
+    def test_save_and_load_notes(self):
+        self.note_manager.import_notes_from_dicts(self.note_dicts)
+        self.note_manager.save_notes_to_file()
+        self.note_manager._notes.clear()
+        self.note_manager.load_notes_from_file()
+        dicts_from_note_manager = self.note_manager.export_notes_as_dicts()
+        for d in dicts_from_note_manager:
+            d['id_'] = str(d['id_'])
+            d['status'] = d['status'].name
+            d['created_date'] = d['created_date'].isoformat()
+            d['issue_date'] = d['issue_date'].isoformat()
+        self.assertEqual(self.note_dicts, dicts_from_note_manager)
 
 
 if __name__ == '__main__':
     unittest.main()
-
