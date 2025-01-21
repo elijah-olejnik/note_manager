@@ -55,6 +55,8 @@ def export_to_json(dicts, filename, rewrite=True):
                 return obj.name
             elif isinstance(obj, datetime):
                 return obj.isoformat()
+            elif isinstance(obj, UUID):
+                return str(obj)
             else:
                 return obj
     if not dicts:
