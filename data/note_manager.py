@@ -147,6 +147,10 @@ class NoteManager:
             del self._notes[i]
         return True
 
+    def delete_all(self):
+        if self._notes:
+            self._notes.clear()
+
     def get_urgent_notes_sorted(self):
         if not self._notes:
             return None
