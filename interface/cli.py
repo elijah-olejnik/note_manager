@@ -1,10 +1,13 @@
+from utils import NoteStatus, InputType, str_to_date, date_to_str, generate_id, input_to_enum_value
 from curses import wrapper
 from datetime import datetime
-import colorama
 from colorama import Fore, Style
 from data import NoteManager, Note
 from interface.femto import femto
-from utils import NoteStatus, InputType, str_to_date, date_to_str, generate_id, input_to_enum_value
+import colorama
+import gettext
+
+_ = gettext.gettext
 
 
 class NoteManagerCLI:
@@ -20,10 +23,10 @@ class NoteManagerCLI:
     @staticmethod
     def _user_confirmation():
         while True:
-            user_input = input("Are you sure? yes | no: ")
-            if user_input == 'yes':
+            user_input = input(_("Are you sure? yes | no: ")).strip().lower()
+            if user_input in ('yes', 'да'):
                 return True
-            elif user_input == 'no':
+            elif user_input in ('no', 'нет'):
                 return False
             else:
                 pass
@@ -32,13 +35,13 @@ class NoteManagerCLI:
     def _print_note_full(note):
         row_format = "{:<20} | {:<60}"
         print("-" * 77)
-        print(row_format.format(Fore.CYAN + "Note ID" + Style.RESET_ALL, str(note.id_)))
-        print(row_format.format(Fore.GREEN + "Username" + Style.RESET_ALL, note.username))
-        print(row_format.format(Fore.YELLOW + "Title" + Style.RESET_ALL, note.title))
-        print(row_format.format(Fore.MAGENTA + "Content" + Style.RESET_ALL, "\n" + note.content))
-        print(row_format.format(Fore.BLUE + "Status" + Style.RESET_ALL, note.status.name))
-        print(row_format.format(Fore.RED + "Created" + Style.RESET_ALL, date_to_str(note.created_date, False)))
-        print(row_format.format(Fore.RED + "Deadline" + Style.RESET_ALL, date_to_str(note.issue_date, True)))
+        print(row_format.format(Fore.CYAN + _("Note ID") + Style.RESET_ALL, str(note.id_)))
+        print(row_format.format(Fore.GREEN + _("Username") + Style.RESET_ALL, note.username))
+        print(row_format.format(Fore.YELLOW + _("Title") + Style.RESET_ALL, note.title))
+        print(row_format.format(Fore.MAGENTA + _("Content") + Style.RESET_ALL, "\n" + note.content))
+        print(row_format.format(Fore.BLUE + _("Status") + Style.RESET_ALL, note.status.name))
+        print(row_format.format(Fore.RED + _("Created") + Style.RESET_ALL, date_to_str(note.created_date, False)))
+        print(row_format.format(Fore.RED + _("Deadline") + Style.RESET_ALL, date_to_str(note.issue_date, True)))
         print("-" * 77)
 
     @staticmethod
@@ -70,7 +73,7 @@ class NoteManagerCLI:
 
     def _display_notes(self, notes_list, display_full=True, per_page=3):
         if not notes_list:
-            print("\nNo notes to display.\n")
+            print(_("\nNo notes to display.\n"))
             return
         total_notes = len(notes_list)
         page = 0
@@ -80,23 +83,23 @@ class NoteManagerCLI:
             notes_to_display = notes_list[start_index:end_index]
             for n in notes_to_display:
                 self._print_note_full(n) if display_full else self._print_note_short(n)
-            print(f"Page {page + 1} of {(total_notes + per_page - 1) // per_page}")
-            print("n - next page, p - previous page, q - quit")
-            choice = input("Enter choice: ").lower()
+            print(_("Page "), str(page + 1), _(" of "), str((total_notes + per_page - 1) // per_page))
+            print("n - ", _("next page"), ", p - ", _("previous page"), ", q - ", _("quit"))
+            choice = input(_("Enter choice: ")).lower()
             if choice == 'n':
                 if end_index < total_notes:
                     page += 1
                 else:
-                    print("You are on the last page.")
+                    print(_("You are on the last page."))
             elif choice == 'p':
                 if start_index > 0:
                     page -= 1
                 else:
-                    print("You are on the first page.")
+                    print(_("You are on the first page."))
             elif choice == 'q':
                 break
             else:
-                print("Invalid choice. Please enter 'n', 'p', or 'q'.")
+                print(_("Invalid choice. Please enter"), "'n', 'p', or 'q'.")
 
     def _display_all(self):
         params = self._display_submenu()
@@ -111,11 +114,11 @@ class NoteManagerCLI:
 
     def _create_note(self):
         note_args = {
-            "username" : "Enter a username: ",
-            "title" : "Enter a title: ",
+            "username" : _("Enter a username: "),
+            "title" : _("Enter a title: "),
             "content" : "",
             "status" : NoteStatus.TERMLESS,
-            "issue_date" : "Enter note deadline (dd-mm-yyyy hh:mm): "
+            "issue_date" : _("Enter note deadline (dd-mm-yyyy hh:mm): ")
         }
         for key, value in note_args.items():
             match key:
@@ -134,13 +137,13 @@ class NoteManagerCLI:
         note_args["id_"] = generate_id()
         note = Note(**note_args)
         self._note_manager.append_note(note)
-        print('\n', "Note created:", '\n')
+        print('\n', _("Note created:"), '\n')
         self._print_note_full(note)
 
     def _choose_note(self):
         notes = []
         while True:
-            choice = self._get_value_from_console(InputType.STR, "\n1. Search\n2.Show all\n\nChoose: ")
+            choice = self._get_value_from_console(InputType.STR, _("\n1. Search\n2.Show all\n\nChoose: "))
             if choice == '1':
                 notes = self._search_notes()
                 break
@@ -149,16 +152,16 @@ class NoteManagerCLI:
                 break
             continue
         if not notes:
-            print("\nNo notes found.\n")
+            print(_("\nNo notes found.\n"))
             return None
         while True:
             i = self._note_choose_submenu(notes) - 1
             if i not in range(0, len(notes)):
-                print("\nWrong number.\n")
+                print(_("\nWrong number.\n"))
                 continue
             try:
                 note = self._note_manager.get_note_by_id(notes[i].id_)
-                print("\nYou've chosen this note:\n\n")
+                print(_("\nYou've chosen this note:\n\n"))
                 self._print_note_full(note)
                 return note
             except ValueError as e:
@@ -329,7 +332,7 @@ class NoteManagerCLI:
                 self._print_note_short(note)
 
     def run(self):
-        print("\nWelcome to the note manager!")
+        print(_("\nWelcome to the note manager!"))
         while True:
             command = self._main_menu()
             match command:
