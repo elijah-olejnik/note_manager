@@ -3,6 +3,9 @@
 from threading import Thread
 import curses
 import pygame
+import gettext
+
+_ = gettext.gettext
 
 
 def nocturne():  # Дорогой дневник
@@ -25,7 +28,7 @@ def stop_nocturne():  # Дорогой дневник
 def femto(screen, initial_text=""):
     start_nocturne()
     header = (
-        "Edit your note text. To exit and save text press Esc",
+        _("Edit your note text. To exit and save text press Esc"),
         ""
     )
     header_height = len(header)
