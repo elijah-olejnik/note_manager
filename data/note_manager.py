@@ -6,7 +6,9 @@ from datetime import datetime
 from pathlib import Path
 from uuid import UUID
 import warnings
+import gettext
 
+_ = gettext.gettext
 
 class NoteManager:
     """The NoteManager class represents a business-logic model
@@ -29,7 +31,7 @@ class NoteManager:
         """
         required_fields = ("content", "created_date", "id_", "issue_date", "status", "title", "username")
         if not all(field in note_dict for field in required_fields):
-            raise DataIntegrityError(f"Missing required fields in record: {note_dict}")
+            raise DataIntegrityError(_("Missing required fields in record: ") + str(note_dict))
         try:
             note = Note(
                 content=note_dict["content"],
@@ -42,7 +44,7 @@ class NoteManager:
             )
             return note
         except(ValueError, KeyError, TypeError) as e:
-            raise DataIntegrityError(f"Data format error in record {note_dict}: {e}")
+            raise DataIntegrityError(_("Data format error in record ") + str(note_dict) + ": " + str(e))
 
     @staticmethod
     def sort_notes(notes, by_created=True, descending=True):
@@ -104,12 +106,12 @@ class NoteManager:
         Raises an exceptions if list is empty or if the dictionaries contain wrong data.
         """
         if not note_dicts:
-            raise ValueError("Failed to import notes from dicts: it's empty.")
+            raise ValueError(_("Failed to import notes from dicts: it's empty."))
         for d in note_dicts:
             try:
                 self._notes.append(self._from_dict(d))
             except DataIntegrityError as e:
-                raise DataIntegrityError(f"Failed to import notes from dicts: {e}")
+                raise DataIntegrityError(_("Failed to import notes from dicts: ") + str(e))
 
     def export_notes_as_dicts(self):
         """The function return a list of dictionaries converted from _notes for serialization purposes
@@ -136,7 +138,7 @@ class NoteManager:
         for note in self._notes:
             if id_ == note.id_:
                 return note
-        raise ValueError(f"Note with ID {id_} not found.")
+        raise ValueError(_("Note with ID ") + str(id_) + _(" not found."))
 
     def save_notes_to_file(self):
         """The function dumps _notes list to the file storage or raises an exception
@@ -161,15 +163,15 @@ class NoteManager:
         file IO or converting data to Note dataclass object fails.
         """
         if not self.storage_path.is_file():
-            warnings.warn(f"File {self.storage_path} not found.")
+            warnings.warn(_("File ") + str(self.storage_path) + _(" not found."))
             try:
                 with open(self.storage_path, 'w'):
                     pass
-                warnings.warn("A new file is created.")
+                warnings.warn(_("A new file is created."))
             except OSError as e:
-                warnings.warn(f"Can't create a new file: {e}")
+                warnings.warn(_("Can't create a new file: ") + str(e))
             finally:
-                warnings.warn("The note list is empty.")
+                warnings.warn(_("The note list is empty."))
         else:
             try:
                 self.import_notes_from_dicts(import_from_yaml(self.storage_path))
@@ -192,7 +194,7 @@ class NoteManager:
         """
         i = self._get_note_index_by_id(id_)
         if i == -1:
-            raise ValueError(f"Note with ID {id_} not found.")
+            raise ValueError(_("Note with ID ") + str(id_) + _(" not found."))
         return self._notes.pop(i)
 
     def delete_by_state(self, state):
