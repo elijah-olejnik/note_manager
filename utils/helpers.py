@@ -20,5 +20,17 @@ def date_to_str(date, is_deadline, state=NoteStatus.TERMLESS):
         return "NO DEADLINE"
 
 
+def input_to_enum_value(input_str, enum_class):
+    try:
+        if not input_str.isdigit():
+            name = input_str.upper()
+            return enum_class[name]
+        else:
+            value = int(input_str)
+            return enum_class(value)
+    except (KeyError, ValueError) as e:
+        raise ValueError(f"Not an Enum value: {e}")
+
+
 def generate_id():
     return uuid.uuid4()

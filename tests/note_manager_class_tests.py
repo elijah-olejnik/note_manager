@@ -34,6 +34,7 @@ class TestNoteManager(unittest.TestCase):
         ]
 
     def test_dict_import_export(self):
+        # Testing a dict-Note-Note-dict converting functions
         self.note_manager.import_notes_from_dicts(self.note_dicts)
         dicts_from_note_manager = self.note_manager.export_notes_as_dicts()
         for d in dicts_from_note_manager:
@@ -44,6 +45,7 @@ class TestNoteManager(unittest.TestCase):
         self.assertEqual(self.note_dicts, dicts_from_note_manager)
 
     def test_save_and_load_notes(self):
+        #Testing a save/load to/from a file and converting functions
         self.note_manager.import_notes_from_dicts(self.note_dicts)
         self.note_manager.save_notes_to_file()
         self.note_manager._notes.clear()

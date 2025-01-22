@@ -4,10 +4,15 @@ import colorama
 from colorama import Fore, Style
 from data import NoteManager, Note
 from interface.femto import femto
-from utils import NoteStatus, InputType, str_to_date, date_to_str, generate_id
+from utils import NoteStatus, InputType, str_to_date, date_to_str, generate_id, input_to_enum_value
 
 
 class NoteManagerCLI:
+    """The class NoteManagerCLI represents an interface to work with
+    the NoteManager class (a model Presenter) and handles user interaction
+    with the terminal (the View), providing the text-based menus and
+    displaying user-readable data.
+    """
     def __init__(self):
         self._note_manager = NoteManager()
         colorama.init(autoreset=True)
@@ -51,12 +56,7 @@ class NoteManagerCLI:
                     case InputType.INT:
                         return int(user_input)
                     case InputType.ENUM_VAL:
-                        if not user_input.isdigit():
-                            name = user_input.upper()
-                            return enum_[name]
-                        else:
-                            value = int(user_input)
-                            return enum_(value)
+                        return input_to_enum_value(user_input, enum_)
                     case InputType.DATE:
                         return str_to_date(user_input)
                     case _:
