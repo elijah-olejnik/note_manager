@@ -1,7 +1,6 @@
 import unittest
-from uuid import UUID
 from datetime import datetime, timedelta
-from utils.helpers import str_to_date, date_to_str, generate_id
+from utils.helpers import str_to_date, date_to_str, input_to_enum_value
 from utils.enums import NoteStatus
 
 
@@ -28,6 +27,26 @@ class TestHelpers(unittest.TestCase):
         date = datetime.now()
         formatted_date = date_to_str(date, is_deadline=True, state=NoteStatus.TERMLESS)
         self.assertEqual(formatted_date, "NO DEADLINE")
+
+    def test_string_input(self):
+        # Test correct string input
+        self.assertEqual(input_to_enum_value("active", NoteStatus), NoteStatus.ACTIVE)
+        self.assertEqual(input_to_enum_value("completed", NoteStatus), NoteStatus.COMPLETED)
+
+        # Test incorrect string input (expecting exception)
+        with self.assertRaises(ValueError) as context:
+            input_to_enum_value("purple", NoteStatus)
+        self.assertIn("Not an Enum value", str(context.exception))
+
+    def test_digit_string_input(self):
+        # Test correct digit input as string
+        self.assertEqual(input_to_enum_value("1", NoteStatus), NoteStatus.COMPLETED)
+        self.assertEqual(input_to_enum_value("2", NoteStatus), NoteStatus.POSTPONED)
+
+        # Test incorrect digit input as string (expecting exception)
+        with self.assertRaises(ValueError) as context:
+            input_to_enum_value("4", NoteStatus)
+        self.assertIn("Not an Enum value", str(context.exception))
 
 
 if __name__ == '__main__':
