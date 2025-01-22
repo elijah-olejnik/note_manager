@@ -10,7 +10,8 @@ import warnings
 
 class NoteManager:
     """The NoteManager class represents a business-logic model
-    handling the notes adding, storing, sorting, filtering and removing.
+    handling the notes adding, storing, sorting, filtering,
+    removing and the import/export routines.
     """
     def __init__(self):
         self._notes = []
