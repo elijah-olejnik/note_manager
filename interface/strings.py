@@ -1,6 +1,19 @@
 import gettext
+import sys
 
 _ = gettext.gettext
+
+
+def set_language(lang_code):
+    try:
+        lang = gettext.translation('messages', localedir='locales', languages=[lang_code])
+        lang.install()
+        global _
+        _ = lang.gettext
+    except FileNotFoundError:
+        print(f"Sorry, language {lang_code} is not supported.")
+        sys.exit(1)
+
 
 # Exception messages
 missing_fields_str = _("Missing required fields in record: ")
@@ -26,7 +39,7 @@ note_list_empty_str = _("The note list is empty.")
 
 # CLI strings
 no_deadline_str = _("NO DEADLINE")
-femto_str = _("Edit your note text. To exit and save text press Esc")
+femto_str = _("Edit your note text. To exit and save text press Esc.")
 welcome_str = _("Welcome to the note manager!")
 note_id_str = _("Note ID")
 username_str = _("Username")
@@ -59,6 +72,7 @@ search_by_str = _("Search by")
 show_all_str = _("Show all")
 no_matches_fnd_str = _("No matches found.")
 choose_note_str = _("Choose a note")
+del_note_str = _("Delete a note")
 or_str = _("or")
 choose_state_str = _("Choose the new note state")
 note_disp_ops = _("Notes display options")

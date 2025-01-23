@@ -1,3 +1,4 @@
+from interface.strings import set_language, _
 from utils import NoteStatus, InputType, str_to_date, date_to_str, generate_id, input_to_enum_value
 from curses import wrapper
 from datetime import datetime
@@ -31,7 +32,7 @@ class NoteManagerCLI:
 
     @staticmethod
     def _print_note_full(note):
-        row_format = "{:<20} | {:<60}"
+        row_format = "{:<22} | {:<60}"
         print("-" * 77)
         print(row_format.format(Fore.CYAN + strings.note_id_str + Style.RESET_ALL, str(note.id_)))
         print(row_format.format(Fore.GREEN + strings.username_str + Style.RESET_ALL, note.username))
@@ -47,7 +48,7 @@ class NoteManagerCLI:
     @staticmethod
     def _print_note_short(note, deadline=""):
         print(f"{Fore.CYAN}{date_to_str(note.created_date, False)}"
-              f"{Style.RESET_ALL} {note.title} {Fore.RED}{deadline}\n\n")
+              f"{Style.RESET_ALL} {note.title} {Fore.RED}{deadline}")
 
     @staticmethod
     def _get_value_from_console(input_type, prompt="", enum_=None):
@@ -241,7 +242,7 @@ class NoteManagerCLI:
             if command in ('1', '3'):
                 state = self._state_submenu()
             notes = self._note_manager.filter_notes(keywords, state)
-            if not notes < 1:
+            if not notes:
                 print('\n' + strings.no_matches_fnd_str, '\n')
                 continue
             return notes
@@ -267,10 +268,10 @@ class NoteManagerCLI:
 
     def _display_submenu(self):
         print(
-            f"{Fore.GREEN}'\n'{strings.note_disp_ops}{Style.RESET_ALL}\n\n"
-            f"{strings.show_str}{Fore.MAGENTA}{strings.full_str}{Style.RESET_ALL} | {Fore.CYAN}{strings.short_str}"
+            f"{Fore.GREEN}\n{strings.note_disp_ops}{Style.RESET_ALL}\n\n"
+            f"{strings.show_str} {Fore.MAGENTA}{strings.full_str}{Style.RESET_ALL} | {Fore.CYAN}{strings.short_str}"
             f"{Style.RESET_ALL}: {Fore.MAGENTA}f{Style.RESET_ALL} | {Fore.CYAN}s\n{Style.RESET_ALL}"
-            f"{strings.sort_str}{Fore.MAGENTA}{strings.created_date_str.lower()}{Style.RESET_ALL} | {Fore.CYAN}"
+            f"{strings.sort_str} {Fore.MAGENTA}{strings.created_date_str.lower()}{Style.RESET_ALL} | {Fore.CYAN}"
             f"{strings.issue_date_str.lower()}{Style.RESET_ALL}: {Fore.MAGENTA}c{Style.RESET_ALL} | {Fore.CYAN}i\n"
             f"{Style.RESET_ALL}"
             f"{Fore.MAGENTA}{strings.asc_str}{Style.RESET_ALL} | {Fore.CYAN}{strings.desc_str}"
@@ -317,11 +318,19 @@ class NoteManagerCLI:
             f"{Fore.YELLOW}1.{Style.RESET_ALL} {strings.create_note_str}\n"
             f"{Fore.YELLOW}2.{Style.RESET_ALL} {strings.show_all_str}\n"
             f"{Fore.YELLOW}3.{Style.RESET_ALL} {strings.upd_note_str}\n"
-            f"{Fore.YELLOW}4.{Style.RESET_ALL} {strings.del_str.capitalize()}\n"
+            f"{Fore.YELLOW}4.{Style.RESET_ALL} {strings.del_note_str}\n"
             f"{Fore.YELLOW}5.{Style.RESET_ALL} {strings.search_str}\n"
             f"{Fore.YELLOW}6.{Style.RESET_ALL} {strings.quit_str.capitalize()}\n"
         )
         return self._get_value_from_console(InputType.STR, strings.enter_choice_str)
+
+    def _set_language(self):
+        while True:
+            choice = self._get_value_from_console(InputType.STR, "Choose language en | ru: ")
+            if choice not in ('en', 'ru'):
+                continue
+            set_language('ru_RU' if choice == 'ru' else 'en_US')
+            break
 
     def _deadline_check_and_notify(self):
         urgent_notes = self._note_manager.get_urgent_notes_sorted()
@@ -341,6 +350,7 @@ class NoteManagerCLI:
                 self._print_note_short(note)
 
     def run(self):
+        self._set_language()
         print('\n' + strings.welcome_str)
         while True:
             command = self._main_menu()
