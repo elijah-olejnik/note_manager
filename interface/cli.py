@@ -1,12 +1,12 @@
-from interface.strings import set_language, _
-from utils import NoteStatus, InputType, str_to_date, date_to_str, generate_id, input_to_enum_value
 from curses import wrapper
 from datetime import datetime
+import colorama
 from colorama import Fore, Style
 from data import NoteManager, Note
-from interface.femto import femto
 from interface import strings
-import colorama
+from interface.femto import femto
+from interface.localization import loc_mgr
+from utils import NoteStatus, InputType, str_to_date, date_to_str, generate_id, input_to_enum_value
 
 
 class NoteManagerCLI:
@@ -326,10 +326,11 @@ class NoteManagerCLI:
 
     def _set_language(self):
         while True:
-            choice = self._get_value_from_console(InputType.STR, "Choose language en | ru: ")
-            if choice not in ('en', 'ru'):
+            choice = self._get_value_from_console(InputType.STR, "Switch language to russian? y | n: ")
+            if choice not in ('y', 'n'):
                 continue
-            set_language('ru_RU' if choice == 'ru' else 'en_US')
+            if choice == 'y':
+                loc_mgr.set_locale('ru')
             break
 
     def _deadline_check_and_notify(self):
