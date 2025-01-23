@@ -6,7 +6,7 @@ from utils import NoteStatus
 from data import NoteManager
 
 
-# TODO: MORE TESTS
+# TODO: MORE TESTS!
 class TestNoteManager(unittest.TestCase):
     def setUp(self):
         self.note_manager = NoteManager()
