@@ -3,12 +3,10 @@
 from threading import Thread
 import curses
 import pygame
-import gettext
-
-_ = gettext.gettext
+from interface import strings
 
 
-def nocturne():  # Дорогой дневник
+def nocturne():  # Dear diary meme
     pygame.mixer.init()
     pygame.mixer.music.load("Chopin-NocturneNo1.mp3")
     pygame.mixer.music.play()
@@ -16,21 +14,18 @@ def nocturne():  # Дорогой дневник
         pygame.time.Clock().tick(10)
 
 
-def start_nocturne():  # Дорогой дневник
+def start_nocturne():  # Dear diary meme
     audio_thread = Thread(target=nocturne)
     audio_thread.start()
 
 
-def stop_nocturne():  # Дорогой дневник
+def stop_nocturne():  # Dear diary meme
     return pygame.mixer.music.stop()
 
 
 def femto(screen, initial_text=""):
     start_nocturne()
-    header = (
-        _("Edit your note text. To exit and save text press Esc"),
-        ""
-    )
+    header = (strings.femto_str, "")
     header_height = len(header)
     screen.clear()
     cursor_x = 0

@@ -1,16 +1,14 @@
 import uuid
 from datetime import datetime
 from utils.enums import NoteStatus
-import gettext
-
-_ = gettext.gettext
+from interface import strings
 
 
 def str_to_date(str_date, is_deadline=True):
     try:
         date = datetime.strptime(str_date, "%d-%m-%Y %H:%M")
         if is_deadline and date <= (datetime.now()):
-            raise ValueError(_("The deadline can be only in the future."))
+            raise ValueError(strings.deadline_invalid_str)
         return date
     except ValueError as e:
         raise e
@@ -20,7 +18,7 @@ def date_to_str(date, is_deadline, state=NoteStatus.TERMLESS):
     if not is_deadline or state not in (NoteStatus.TERMLESS, NoteStatus.COMPLETED):
         return datetime.strftime(date, "%B %d, %Y %H:%M")
     else:
-        return _("NO DEADLINE")
+        return strings.no_deadline_str
 
 
 def input_to_enum_value(input_str, enum_class):
@@ -32,7 +30,7 @@ def input_to_enum_value(input_str, enum_class):
             value = int(input_str)
             return enum_class(value)
     except (KeyError, ValueError) as e:
-        raise ValueError(_("Not an Enum value: ") + str(e))
+        raise ValueError(strings.enum_error_str + str(e))
 
 
 def generate_id():
