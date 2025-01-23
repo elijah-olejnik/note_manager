@@ -3,6 +3,8 @@ import gettext
 
 class LocalisationManager:
     def __init__(self):
+        gettext.bindtextdomain('note_manager', 'locales')
+        gettext.textdomain('note_manager')
         self.lang = gettext
 
     def set_locale(self, lang_code):
