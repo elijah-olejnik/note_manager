@@ -3,9 +3,8 @@ from datetime import datetime
 import colorama
 from colorama import Fore, Style
 from data import NoteManager, Note
-from interface import strings
 from interface.femto import femto
-from interface.localization import loc_mgr
+from interface.strings import strings
 from utils import NoteStatus, InputType, str_to_date, date_to_str, generate_id, input_to_enum_value
 
 
@@ -330,7 +329,7 @@ class NoteManagerCLI:
             if choice not in ('y', 'n'):
                 continue
             if choice == 'y':
-                loc_mgr.set_locale('ru')
+                strings.change_language('ru')
             break
 
     def _deadline_check_and_notify(self):

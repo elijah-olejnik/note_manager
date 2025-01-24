@@ -1,2 +1,2 @@
 from interface.cli import NoteManagerCLI
-from interface import strings
+from interface.strings import strings

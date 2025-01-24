@@ -301,19 +301,19 @@ msgstr "Дедлайн завтра:"
 
 #: strings.py:95
 msgid "Enter choice: "
-msgstr "Введите выбор:"
+msgstr "Введите выбор: "
 
 #: strings.py:96
 msgid "Enter a username: "
-msgstr "Введите имя пользователя"
+msgstr "Введите имя пользователя: "
 
 #: strings.py:97
 msgid "Enter a title: "
-msgstr "Введите заголовок"
+msgstr "Введите заголовок: "
 
 #: strings.py:98
 msgid "Enter note deadline (dd-mm-yyyy hh:mm): "
-msgstr "Введите дату дедлайна (дд-мм-гггг чч:мм):"
+msgstr "Введите дату дедлайна (дд-мм-гггг чч:мм): "
 
 #: strings.py:99
 msgid "Enter keywords, separated by "

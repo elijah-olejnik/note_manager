@@ -90,3 +90,5 @@ class StringsProvider:
     def change_language(self, lang_code):
         language_manager.set_locale(lang_code)
         self.__init__()
+
+strings = StringsProvider()
