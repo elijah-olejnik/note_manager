@@ -23,6 +23,7 @@ def stop_nocturne():  # Dear diary meme
     return pygame.mixer.music.stop()
 
 
+# TODO: NON-ASCII HANDLING
 def femto(screen, initial_text=""):
     start_nocturne()
     header = (strings.femto_str, "")
