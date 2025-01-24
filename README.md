@@ -108,4 +108,4 @@ This script saves notes to a JSON file
 This is the Note Manager program version containing all received knowledge at the moment. 
 Also, I added some meme music playing while the user edits the note text =)
 ### Stage 5
-The code now is splitted by modules and packages
+The code now is splitted by modules and packages, added localisation, unit-tests, docstrings
