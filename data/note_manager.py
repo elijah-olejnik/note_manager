@@ -8,6 +8,7 @@ from uuid import UUID
 import warnings
 from interface import strings
 
+
 class NoteManager:
     """The NoteManager class represents a business-logic model
     handling the notes adding, storing, sorting, filtering,
