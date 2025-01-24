@@ -15,6 +15,6 @@ class LocalisationManager:
         return self.lang.gettext(msg)
 
 
-loc_mgr = LocalisationManager()
+language_manager = LocalisationManager()
 def _(message):
-    return loc_mgr.gettext(message)
+    return language_manager.gettext(message)
