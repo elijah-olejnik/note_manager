@@ -2,8 +2,8 @@ import unittest
 from datetime import datetime, timedelta
 from pathlib import Path
 from uuid import uuid4
-from utils import NoteStatus
 from data import NoteManager
+from utils import NoteStatus
 
 
 # TODO: MORE TESTS!
@@ -46,7 +46,7 @@ class TestNoteManager(unittest.TestCase):
         self.assertEqual(self.note_dicts, dicts_from_note_manager)
 
     def test_save_and_load_notes(self):
-        #Testing a save/load to/from a file and converting functions
+        # Testing a save/load to/from a file and converting functions
         self.note_manager.import_notes_from_dicts(self.note_dicts)
         self.note_manager.save_notes_to_file()
         self.note_manager._notes.clear()
@@ -58,6 +58,14 @@ class TestNoteManager(unittest.TestCase):
             d['created_date'] = d['created_date'].isoformat()
             d['issue_date'] = d['issue_date'].isoformat()
         self.assertEqual(self.note_dicts, dicts_from_note_manager)
+
+    def test_delete_by_id(self):
+        # Testing note deletion that should pop() the note from list and return it
+        self.note_manager.import_notes_from_dicts(self.note_dicts)
+        self.note_manager.save_notes_to_file()
+        note_orig = self.note_manager._from_dict(self.note_dicts[1])
+        note_popped = self.note_manager.delete_note_by_id(self.note_manager.notes[1].id_)
+        self.assertEqual(note_orig, note_popped)
 
 
 if __name__ == '__main__':

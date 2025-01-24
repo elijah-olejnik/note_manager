@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
-from utils.enums import NoteStatus
-from interface.strings import strings
+from .enums import NoteStatus
+from resources import strings
 
 
 def str_to_date(str_date, is_deadline=True):

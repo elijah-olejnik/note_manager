@@ -9,3 +9,10 @@
   status: TERMLESS
   title: Тест создания заметки
   username: Илья Олейник
+- content: "Ð¢ÐµÑ\x81Ñ\x82Ð¾Ð²Ñ\x8BÐ¹ ÐºÐ¾Ð½Ñ\x82ÐµÐ½Ñ\x82"
+  created_date: '2025-01-24T20:17:20.910063'
+  id_: dfec4c1c-0c8d-427d-83ca-6a4c0e19c211
+  issue_date: '0001-01-01T00:00:00'
+  status: TERMLESS
+  title: Тест3
+  username: Тестер

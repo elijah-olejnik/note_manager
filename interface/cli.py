@@ -3,8 +3,8 @@ from datetime import datetime
 import colorama
 from colorama import Fore, Style
 from data import NoteManager, Note
-from interface.femto import femto
-from interface.strings import strings
+from .femto import femto
+from resources import strings
 from utils import NoteStatus, InputType, str_to_date, date_to_str, generate_id, input_to_enum_value
 
 

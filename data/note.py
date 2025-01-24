@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
+
 @dataclass
 class Note:
     """The class Note represents a data model of the note record."""

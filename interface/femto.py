@@ -3,7 +3,7 @@
 from threading import Thread
 import curses
 import pygame
-from interface import strings
+from resources import strings
 
 
 def nocturne():  # Dear diary meme

@@ -1,12 +1,12 @@
 from utils import DataIntegrityError, NoteStatus, FileIOError
-from data.file_io import export_to_yaml, import_from_yaml, export_to_json
-from data.note import Note
+from .file_io import export_to_yaml, import_from_yaml, export_to_json
+from .note import Note
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 from uuid import UUID
 import warnings
-from interface import strings
+from resources import strings
 
 
 class NoteManager:

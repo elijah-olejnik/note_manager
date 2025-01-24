@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timedelta
-from utils.helpers import str_to_date, date_to_str, input_to_enum_value
-from utils.enums import NoteStatus
+from utils import str_to_date, date_to_str, input_to_enum_value
+from utils import NoteStatus
 
 
 class TestHelpers(unittest.TestCase):

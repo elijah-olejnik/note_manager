@@ -5,7 +5,7 @@ from enum import Enum
 from uuid import UUID
 import yaml
 import json
-from interface import strings
+from resources import strings
 
 
 def import_from_yaml(filename):
