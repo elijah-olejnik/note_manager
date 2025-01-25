@@ -9,6 +9,9 @@ from resources import strings
 
 
 def import_from_yaml(filename):
+    """The function handles YAML file IO and returns read data as the list of dicts.
+    Raises FileIOError if file reading or parsing fails.
+    """
     try:
         with open(filename, 'r', encoding='utf-8') as file:
             dicts = yaml.safe_load(file)
@@ -20,6 +23,10 @@ def import_from_yaml(filename):
 
 
 def export_to_yaml(dicts, filename, rewrite=True):
+    """The function handles YAML file IO and dumps given dicts to a given filename.
+    If rewrite=False the function appends data to a given file.
+    Raises FileIOError if file writing or conversion fails.
+    """
     def datetime_representer(dumper, data):
         return dumper.represent_scalar("tag:yaml.org,2002:str", data.isoformat())
     def enum_representer(dumper, data):
@@ -39,6 +46,9 @@ def export_to_yaml(dicts, filename, rewrite=True):
 
 
 def import_from_json(filename):
+    """The function handles JSON file IO and returns read data as the list of dicts.
+    Raises FileIOError if file reading or parsing fails.
+    """
     try:
         with open(filename) as file:
             dicts = json.load(file)
@@ -50,6 +60,10 @@ def import_from_json(filename):
 
 
 def export_to_json(dicts, filename, rewrite=True):
+    """The function handles JSON file IO and dumps given dicts to a given filename.
+    If rewrite=False the function appends data to a given file.
+    Raises FileIOError if file writing or conversion fails.
+    """
     class NoteEncoder(json.JSONEncoder):
         def default(self, obj):
             if isinstance(obj, Enum):

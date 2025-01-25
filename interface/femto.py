@@ -7,6 +7,7 @@ from resources import strings
 
 
 def nocturne():  # Dear diary meme
+    """The function prepares and playing a meme sound."""
     pygame.mixer.init()
     pygame.mixer.music.load("Chopin-NocturneNo1.mp3")
     pygame.mixer.music.play()
@@ -15,15 +16,22 @@ def nocturne():  # Dear diary meme
 
 
 def start_nocturne():  # Dear diary meme
+    """The function launches the nocturne() in a thread."""
     audio_thread = Thread(target=nocturne)
     audio_thread.start()
 
 
 def stop_nocturne():  # Dear diary meme
+    """The function stops the music."""
     return pygame.mixer.music.stop()
 
 
 def femto(screen, initial_text=""):
+    """This is the tiny console text editor called Femto.
+    To use it on windows you should install windows-curses module.
+    Also, you must check that the ncurses library used by Python
+    has get_wchar() function.
+    """
     start_nocturne()
     header = (strings.femto_str, "")
     header_height = len(header)

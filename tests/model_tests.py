@@ -6,7 +6,6 @@ from data import NoteManager
 from utils import NoteStatus
 
 
-# TODO: MORE TESTS!
 class TestNoteManager(unittest.TestCase):
     def setUp(self):
         self.note_manager = NoteManager()
@@ -66,6 +65,13 @@ class TestNoteManager(unittest.TestCase):
         note_orig = self.note_manager._from_dict(self.note_dicts[1])
         note_popped = self.note_manager.delete_note_by_id(self.note_manager.notes[1].id_)
         self.assertEqual(note_orig, note_popped)
+
+    def test_get_note_by_id(self):
+        # Testing getting a note from notes list by UUID
+        self.note_manager.import_notes_from_dicts(self.note_dicts)
+        test_note = self.note_manager.notes[0]
+        id_ = test_note.id_
+        self.assertEqual(test_note, self.note_manager.get_note_by_id(id_))
 
 
 if __name__ == '__main__':

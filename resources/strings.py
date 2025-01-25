@@ -2,6 +2,9 @@ from .localization import _, language_manager
 
 
 class StringsProvider:
+    """Class StringsProvider stores all user-readable strings
+    and handles their translations the other languages.
+    """
     def __init__(self):
         # Exception messages
         self.missing_fields_str = _("Missing required fields in record: ")
@@ -89,6 +92,7 @@ class StringsProvider:
                                "(e.g. for show note in full sorting by created date ascending enter")
 
     def change_language(self, lang_code):
+        """The function changes strings language to a given one."""
         language_manager.set_locale(lang_code)
         self.__init__()
 

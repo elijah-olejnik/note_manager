@@ -20,3 +20,24 @@
   status: *id001
   title: Тест3
   username: Тестер
+- content: Тест дедлайна для уведомления
+  created_date: '2025-01-25T16:14:18.261028'
+  id_: f8f57b92-2bf7-4eeb-9cf6-32186a516537
+  issue_date: '2025-01-25T22:00:00'
+  status: ACTIVE
+  title: Deadline test
+  username: Илья
+- content: Тест дедлайна завтрашним днём
+  created_date: '2025-01-25T16:20:06.476908'
+  id_: 0c936f36-5519-432c-bd70-58b287096113
+  issue_date: '2025-01-26T18:00:00'
+  status: ACTIVE
+  title: Тест деделайна2
+  username: User
+- content: Тест просроченного дедлайна
+  created_date: '2025-01-25T16:21:58.277220'
+  id_: cc71b8da-6a42-475f-8b90-b9c13d9cf4f2
+  issue_date: '2025-01-20T20:00:00'
+  status: ACTIVE
+  title: ТестДедлайна3
+  username: Илья

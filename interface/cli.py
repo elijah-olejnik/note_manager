@@ -20,6 +20,7 @@ class NoteManagerCLI:
 
     @staticmethod
     def _user_confirmation():
+        """The function handles 'are you sure? yes/no routines.'"""
         while True:
             user_input = input(strings.confirmation_message_str).strip().lower()
             if user_input in ('yes', 'да'):
@@ -31,6 +32,7 @@ class NoteManagerCLI:
 
     @staticmethod
     def _print_note_full(note):
+        """The function prints out all fields of a given Note object in a user-readable format."""
         row_format = "{:<22} | {:<60}"
         print("-" * 77)
         print(row_format.format(Fore.CYAN + strings.note_id_str + Style.RESET_ALL, str(note.id_)))
@@ -46,11 +48,17 @@ class NoteManagerCLI:
 
     @staticmethod
     def _print_note_short(note, deadline=""):
+        """The function prints out created date and title of a given Note object in a user-readable format."""
         print(f"{Fore.CYAN}{date_to_str(note.created_date, False)}"
               f"{Style.RESET_ALL} {note.title} {Fore.RED}{deadline}")
 
     @staticmethod
     def _get_value_from_console(input_type, prompt="", enum_=None):
+        """The function handles and checks the correctness of the user input from terminal
+        depending on the given InputType value. The argument 'prompt' is used for the input()
+        function, the argument 'enum_' used only if the InputType is InputType.ENUM_VAL.
+        Raises a KeyError and ValueError exceptions if input is incorrect.
+        """
         while True:
             try:
                 user_input = input(prompt).strip() if input_type != InputType.TEXT else wrapper(femto, prompt)
@@ -69,10 +77,14 @@ class NoteManagerCLI:
                 print('\n', e, '\n')
 
     def _list_notes(self):
+        """The function lists all notes stored by the NoteManager in shortened format."""
         for i, note in enumerate(self._note_manager.notes):
             self._print_note_short(note)
 
     def _display_notes(self, notes_list, display_full=True, per_page=3):
+        """The function displays the given note_list in the user-readable format paged with
+        the given parameters: full or shortened and number of notes per page.
+        """
         if not notes_list:
             print('\n' + strings.no_notes_disp_str, '\n')
             return
@@ -103,6 +115,9 @@ class NoteManagerCLI:
                 print(strings.invalid_choice_str, strings.correct_cmds_str, "'n', 'p', or 'q'.")
 
     def _display_all(self):
+        """The function displays all notes stored in NoteManager with
+        the parameters given by user input.
+        """
         params = self._display_submenu()
         self._display_notes(
             self._note_manager.sort_notes(
@@ -114,6 +129,7 @@ class NoteManagerCLI:
         )
 
     def _create_note(self):
+        """The function handles the note creation from the console."""
         note_args = {
             "username" : strings.enter_username_str,
             "title" : strings.enter_title_str,
@@ -142,6 +158,7 @@ class NoteManagerCLI:
         self._print_note_full(note)
 
     def _choose_note(self):
+        """The function handles the user note choice."""
         notes = []
         while True:
             choice = self._get_value_from_console(
@@ -173,6 +190,7 @@ class NoteManagerCLI:
                 return None
 
     def _update_note(self):
+        """The note handles the note edition in console."""
         note = self._choose_note()
         if not note:
             return
@@ -220,6 +238,7 @@ class NoteManagerCLI:
                 continue
 
     def _delete_note(self):
+        """The function handles the note deletion from console."""
         note = self._choose_note()
         try:
             deleted = self._note_manager.delete_note_by_id(note.id_)
@@ -229,6 +248,9 @@ class NoteManagerCLI:
             print(e)
 
     def _search_notes(self):
+        """The function provide the NoteManager filtering
+        options to the user for searching a note from console.
+        """
         while True:
             command = self._search_submenu()
             if command == '4':
@@ -248,6 +270,7 @@ class NoteManagerCLI:
         return []
 
     def _note_choose_submenu(self, notes):
+        """The submenu routine."""
         print('\n' + strings.choose_note_str, "\n\n")
         for i, note in enumerate(notes):
             print(
@@ -256,6 +279,7 @@ class NoteManagerCLI:
         return self._get_value_from_console(InputType.INT, '\n' + strings.enter_choice_str)
 
     def _state_submenu(self):
+        """The submenu routine."""
         print(
             '\n'+ strings.choose_state_str + "\n\n" +
             "0 " + strings.or_str + " active\n"
@@ -266,6 +290,7 @@ class NoteManagerCLI:
         return self._get_value_from_console(InputType.ENUM_VAL, strings.enter_choice_str, NoteStatus)
 
     def _display_submenu(self):
+        """The submenu routine."""
         print(
             f"{Fore.GREEN}\n{strings.note_disp_ops}{Style.RESET_ALL}\n\n"
             f"{strings.show_str} {Fore.MAGENTA}{strings.full_str}{Style.RESET_ALL} | {Fore.CYAN}{strings.short_str}"
@@ -286,6 +311,7 @@ class NoteManagerCLI:
                 return param_set
 
     def _update_submenu(self):
+        """The submenu routine."""
         print(
             f"{Fore.GREEN}\n{strings.edit_menu_str}\n\n"
             f"{Fore.YELLOW}1.{Style.RESET_ALL} {strings.username_str}\n"
@@ -298,6 +324,7 @@ class NoteManagerCLI:
         return self._get_value_from_console(InputType.STR, strings.enter_choice_str)
 
     def _search_submenu(self):
+        """The submenu routine."""
         print(
             f"{Fore.GREEN}\n{strings. search_by_str}:{Style.RESET_ALL}\n\n"
             f"{Fore.YELLOW}1.{Style.RESET_ALL} {strings.status_str}\n"
@@ -308,6 +335,7 @@ class NoteManagerCLI:
         return self._get_value_from_console(InputType.STR, strings.enter_choice_str)
 
     def _main_menu(self):
+        """The CLI Main menu."""
         if not self._note_manager.notes:
             print(f"\n{Fore.YELLOW}{strings.no_notes_found_str}{Style.RESET_ALL}")
         else:
@@ -324,6 +352,7 @@ class NoteManagerCLI:
         return self._get_value_from_console(InputType.STR, strings.enter_choice_str)
 
     def _set_language(self):
+        """Language choice routine."""
         while True:
             choice = self._get_value_from_console(InputType.STR, "Switch language to russian? y | n: ")
             if choice not in ('y', 'n'):
@@ -333,6 +362,9 @@ class NoteManagerCLI:
             break
 
     def _deadline_check_and_notify(self):
+        """The function checks the notes with urgent deadline
+        and notifies the user.
+        """
         urgent_notes = self._note_manager.get_urgent_notes_sorted()
         if not urgent_notes:
             return
@@ -350,6 +382,7 @@ class NoteManagerCLI:
                 self._print_note_short(note)
 
     def run(self):
+        """The main function of the CLI."""
         self._set_language()
         print('\n' + strings.welcome_str)
         while True:

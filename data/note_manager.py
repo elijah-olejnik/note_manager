@@ -232,7 +232,7 @@ class NoteManager:
             if note.status not in (NoteStatus.TERMLESS, NoteStatus.COMPLETED):
                 days = (note.issue_date - datetime.now()).days
                 if days < 0:
-                    missed_dl.append((note, days))
+                    missed_dl.append(note)
                 elif days == 0:
                     today_dl.append(note)
                 elif days == 1:
