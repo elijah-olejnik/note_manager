@@ -1,7 +1,7 @@
 # This is my tiny console text editor
 # To use it on windows you should install windows-curses module
-from threading import Thread
 import curses
+from threading import Thread
 import pygame
 from resources import strings
 
@@ -23,7 +23,6 @@ def stop_nocturne():  # Dear diary meme
     return pygame.mixer.music.stop()
 
 
-# TODO: NON-ASCII HANDLING
 def femto(screen, initial_text=""):
     start_nocturne()
     header = (strings.femto_str, "")
@@ -44,7 +43,7 @@ def femto(screen, initial_text=""):
             screen.addstr(i + header_height, 0, line)
         screen.move(cursor_y + header_height, cursor_x)
         screen.refresh()
-        key = screen.getch()
+        key = screen.get_wch()
         match key:
             case curses.KEY_UP:
                 cursor_y = max(0, cursor_y - 1)
@@ -68,11 +67,11 @@ def femto(screen, initial_text=""):
                 cursor_y = max(0, cursor_y - page_size)
             case curses.KEY_NPAGE:  # Page Down key
                 cursor_y = min(len(text) - 1, cursor_y + page_size)
-            case 10 | 13:  # Enter key
+            case 10 | 13 | '\n' | '\r':  # Enter key
                 text.insert(cursor_y + 1, "")
                 cursor_y += 1
                 cursor_x = 0
-            case 8 | 127:  # Backspace key
+            case 8 | 127 | '\x7f' | '\x08':  # Backspace key
                 if cursor_x > 0:
                     text[cursor_y] = text[cursor_y][:cursor_x - 1] + text[cursor_y][cursor_x:]
                     cursor_x -= 1
@@ -81,9 +80,9 @@ def femto(screen, initial_text=""):
                     text[cursor_y - 1] += text[cursor_y]
                     text.pop(cursor_y)
                     cursor_y -= 1
-            case 27:  # ESC key to exit
+            case 27 | '\x1b':  # ESC key to exit
                 break
-            case 9:  # Tab key
+            case 9 | '\t':  # Tab key
                 tab_spaces = "    "  # or simply "\t" for a tab character
                 text[cursor_y] = text[cursor_y][:cursor_x] + tab_spaces + text[cursor_y][cursor_x:]
                 cursor_x += len(tab_spaces)
@@ -94,9 +93,9 @@ def femto(screen, initial_text=""):
                     text.append("")
                 if insert_mode or cursor_x >= len(text[cursor_y]):
 
-                    text[cursor_y] = text[cursor_y][:cursor_x] + chr(key) + text[cursor_y][cursor_x:]
+                    text[cursor_y] = text[cursor_y][:cursor_x] + str(key) + text[cursor_y][cursor_x:]
                 else:
-                    text[cursor_y] = text[cursor_y][:cursor_x] + chr(key) + text[cursor_y][cursor_x + 1:]
+                    text[cursor_y] = text[cursor_y][:cursor_x] + str(key) + text[cursor_y][cursor_x + 1:]
                 cursor_x += 1
         # Ensure cursor is within bounds
         cursor_x = min(len(text[cursor_y]), cursor_x)
