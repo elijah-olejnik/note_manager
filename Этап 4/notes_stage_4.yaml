@@ -1,0 +1,37 @@
+- content: Wrote too much code...
+  created_date: '2025-01-15T17:12:33.266521'
+  id_: 60821
+  issue_date: '0001-01-01T00:00:00'
+  status: &id001 TERMLESS
+  title: Exhausted
+  username: Elijah
+- content: Dear diary. I don't have enough words to exspress all my pain and....
+  created_date: '2025-01-15T17:13:24.904872'
+  id_: 74529
+  issue_date: '2025-02-01T12:00:00'
+  status: ACTIVE
+  title: Test
+  username: Elijah
+- content: This note was appended to the YAML file
+  created_date: '2025-01-16T01:04:05.509532'
+  id_: 70234
+  issue_date: '0001-01-01T00:00:00'
+  status: *id001
+  title: Appended
+  username: User
+- content: 'Here I tested the music =)
+
+    Happy like a dog)'
+  created_date: '2025-01-17T18:52:36.932236'
+  id_: 45390
+  issue_date: '0001-01-01T00:00:00'
+  status: TERMLESS
+  title: Music test
+  username: ELijah
+- content: Это тест русского языка
+  created_date: '2025-01-20T12:01:54.418520'
+  id_: 56635
+  issue_date: '0001-01-01T00:00:00'
+  status: TERMLESS
+  title: Тест
+  username: Илья

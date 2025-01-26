@@ -1,0 +1,55 @@
+- content: '
+
+    Test title
+
+
+    test content edited content
+
+    '
+  created_date: '2025-01-14T23:05:45.340720'
+  id_: 91888
+  issue_date: '2025-02-01T12:00:00'
+  status: COMPLETED
+  title: Final test
+  username: Elijah
+- content: '1. How do I check the sizeof(variable)?
+
+    2. Where and how the memory is allocated for the variables?
+
+    3. Is there Heap or Stack concepts in Python?
+
+    4. How can I manage the padding (alignment in the memory) if the variable is lesser
+    than 4 bytes?
+
+    5. What are the best memory consumption reduce practices in Python?
+
+    6. What are the prospects for writing high-performance self-learning models for
+    embedded and IoT using Python?'
+  created_date: '2025-01-15T01:14:51.237049'
+  id_: 52173
+  issue_date: '2025-02-22T22:00:00'
+  status: &id002 ACTIVE
+  title: My Python questions
+  username: Ilia Oleinik
+- content: Woke up, watched through the window, ate, walked and barked on everything
+  created_date: '2025-01-15T01:14:51.237049'
+  id_: 52173
+  issue_date: '0001-01-01T00:00:00'
+  status: &id001 TERMLESS
+  title: My weekday
+  username: Sheldon, the dog
+- content: "    Movies I like\n\nGrinch, Harry Potter, Taxi, Asterix & Obelix\n\n\
+    \    Movies I don't like\n\nThe Matrix, Blade, Begotten, Sex And The City"
+  created_date: '2025-01-15T01:14:51.237049'
+  id_: 52173
+  issue_date: '0001-01-01T00:00:00'
+  status: *id001
+  title: Movies
+  username: Galina
+- content: Need to hurry up with Grade1 Stage4 asap
+  created_date: '2025-01-15T01:14:51.237049'
+  id_: 52173
+  issue_date: '2025-01-16T14:00:00'
+  status: *id002
+  title: Stage 4
+  username: Ilia Oleinik
