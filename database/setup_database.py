@@ -1,8 +1,8 @@
 import sqlite3
 
 
-def setup_db():
-    conn = sqlite3.connect('data/notes.db')
+def setup_db(db_path):
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
     create_table_sql = """
