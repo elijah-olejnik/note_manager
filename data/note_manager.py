@@ -7,6 +7,8 @@ from pathlib import Path
 from uuid import UUID
 import warnings
 from resources import strings
+from .db_io import save_note_to_db
+from .setup_database import setup_db
 
 
 class NoteManager:
@@ -16,8 +18,9 @@ class NoteManager:
     """
     def __init__(self):
         self._notes = []
-        self.storage_path = Path("notes.yaml")
-        self.load_notes_from_file()
+        setup_db()
+        # self.storage_path = Path("notes.yaml")
+        # self.load_notes_from_file()
 
     def __str__(self):
         return self._notes.__str__()
@@ -125,10 +128,11 @@ class NoteManager:
         export to the file fails.
         """
         self._notes.append(note)
-        try:
-            export_to_yaml([asdict(note)], self.storage_path, False)
-        except FileIOError as e:
-            warnings.warn(e) # noqa
+        save_note_to_db(note, 'data/notes.db')
+        # try:
+        #     export_to_yaml([asdict(note)], self.storage_path, False)
+        # except FileIOError as e:
+        #     warnings.warn(e) # noqa
 
     def get_note_by_id(self, id_):
         """The function return a note by a given ID or

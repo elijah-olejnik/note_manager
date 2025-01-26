@@ -2,7 +2,7 @@ import sqlite3
 
 
 def setup_db():
-    conn = sqlite3.connect('notes.db')
+    conn = sqlite3.connect('data/notes.db')
     cursor = conn.cursor()
 
     create_table_sql = """
