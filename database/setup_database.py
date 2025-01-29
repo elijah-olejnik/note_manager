@@ -4,7 +4,6 @@ import sqlite3
 def setup_db(db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-
     create_table_sql = """
     CREATE TABLE IF NOT EXISTS notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -16,7 +15,6 @@ def setup_db(db_path):
         issue_date TEXT NOT NULL
     );
     """
-
     cursor.execute(create_table_sql)
     conn.commit()
     conn.close()
