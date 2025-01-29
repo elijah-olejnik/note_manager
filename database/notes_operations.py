@@ -46,7 +46,6 @@ def load_notes_from_db(db_path):
     conn.close()
     return notes
 
-
 def update_note_in_db(note_id, updates, db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
