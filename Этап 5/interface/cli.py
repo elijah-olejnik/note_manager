@@ -43,7 +43,7 @@ class NoteManagerCLI:
         print(row_format.format(Fore.RED + strings.created_date_str + Style.RESET_ALL,
                                 date_to_str(note.created_date, False)))
         print(row_format.format(Fore.RED + strings.issue_date_str + Style.RESET_ALL,
-                                date_to_str(note.issue_date, True)))
+                                date_to_str(note.issue_date, True, note.status)))
         print("-" * 77)
 
     @staticmethod
