@@ -102,7 +102,7 @@ class NoteManager:
     def import_notes_from_dicts(self, note_dicts):
         """The function takes a list of dictionaries,
         loaded from JSON or YAML file and appends it to the _notes list as notes.
-        Raises an exceptions if list is empty or if the dictionaries contain wrong data.
+        Raises an exceptions if list is empty or if the dictionaries contain wrong model.
         """
         if not note_dicts:
             raise ValueError(strings.empty_list_io_str)
@@ -159,7 +159,7 @@ class NoteManager:
 
     def load_notes_from_file(self):
         """The function load notes from the file storage or raises an exception when
-        file IO or converting data to Note dataclass object fails.
+        file IO or converting model to Note dataclass object fails.
         """
         if not self.storage_path.is_file():
             warnings.warn(strings.file_str + str(self.storage_path) + strings.not_found_str)

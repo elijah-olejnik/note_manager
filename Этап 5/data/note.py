@@ -6,7 +6,7 @@ from uuid import UUID
 
 @dataclass
 class Note:
-    """The class Note represents a data model of the note record."""
+    """The class Note represents a model model of the note record."""
     content: str
     created_date: datetime
     id_: UUID

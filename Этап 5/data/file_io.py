@@ -9,7 +9,7 @@ from resources import strings
 
 
 def import_from_yaml(filename):
-    """The function handles YAML file IO and returns read data as the list of dicts.
+    """The function handles YAML file IO and returns read model as the list of dicts.
     Raises FileIOError if file reading or parsing fails.
     """
     try:
@@ -24,7 +24,7 @@ def import_from_yaml(filename):
 
 def export_to_yaml(dicts, filename, rewrite=True):
     """The function handles YAML file IO and dumps given dicts to a given filename.
-    If rewrite=False the function appends data to a given file.
+    If rewrite=False the function appends model to a given file.
     Raises FileIOError if file writing or conversion fails.
     """
     def datetime_representer(dumper, data):
@@ -46,7 +46,7 @@ def export_to_yaml(dicts, filename, rewrite=True):
 
 
 def import_from_json(filename):
-    """The function handles JSON file IO and returns read data as the list of dicts.
+    """The function handles JSON file IO and returns read model as the list of dicts.
     Raises FileIOError if file reading or parsing fails.
     """
     try:
@@ -61,7 +61,7 @@ def import_from_json(filename):
 
 def export_to_json(dicts, filename, rewrite=True):
     """The function handles JSON file IO and dumps given dicts to a given filename.
-    If rewrite=False the function appends data to a given file.
+    If rewrite=False the function appends model to a given file.
     Raises FileIOError if file writing or conversion fails.
     """
     class NoteEncoder(json.JSONEncoder):

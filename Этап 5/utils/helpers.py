@@ -6,7 +6,7 @@ from resources import strings
 
 def str_to_date(str_date, is_deadline=True):
     """The function converts user input string to a datetime
-    object. If is_deadline=True the function compare the entered data
+    object. If is_deadline=True the function compare the entered model
     with datetime.now() to assure that deadline is in the future.
     Raises ValueError if input doesn't fit date format or the deadline condition.
     """
@@ -33,7 +33,7 @@ def date_to_str(date, is_deadline, state=NoteStatus.TERMLESS):
 def input_to_enum_value(input_str, enum_class):
     """The function convert the user input to an enum value or value name
     of a given Enum in the second argument. Raises the ValueError if
-    the given data doesn't match with any of Enum values or names.
+    the given model doesn't match with any of Enum values or names.
     """
     try:
         if not input_str.isdigit():

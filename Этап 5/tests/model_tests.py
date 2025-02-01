@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime, timedelta
 from pathlib import Path
 from uuid import uuid4
-from data import NoteManager
+from model import NoteManager
 from utils import NoteStatus
 
 

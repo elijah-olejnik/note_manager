@@ -327,7 +327,7 @@ def main_menu(notes):
                     create_note(notes)
                 case 2:
                     print(
-                        "Display all note data? y|n\n"
+                        "Display all note model? y|n\n"
                         "Sort by creation date or deadline? c|d\n"
                     )
                     while True:

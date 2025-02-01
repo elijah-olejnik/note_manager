@@ -104,7 +104,7 @@ def main():
     if decision != 'y':
         print("quitting...")
         sys.exit(0)
-    print("Choose parameters:\nDisplay all note data? y|n\nSort by creation date or deadline? c|d")
+    print("Choose parameters:\nDisplay all note model? y|n\nSort by creation date or deadline? c|d")
     while True:
         params = input("Enter parameters separated by ; e.g.: y;c: ").split(';')
         if params[0] not in ('y','n') or params[1] not in ('c','d'):

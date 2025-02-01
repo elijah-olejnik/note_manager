@@ -3,24 +3,22 @@ from datetime import datetime
 from utils import NoteStatus, DataIntegrityError, DatabaseError
 
 
-def notes_from_data(rows):
+def note_from_data(row):
     try:
-        return [
-            {
-                'id_': row[0],
-                'username': row[1],
-                'title': row[2],
-                'content': row[3],
-                'status': NoteStatus[row[4]],
-                'created_date': datetime.strptime(row[5], "%d-%m-%Y").date(),
-                'issue_date': datetime.strptime(row[6], "%d-%m-%Y").date()
-            } for row in rows
-        ]
+        return {
+            'id': row[0],
+            'username': row[1],
+            'title': row[2],
+            'content': row[3],
+            'status': NoteStatus[row[4]],
+            'created_date': datetime.strptime(row[5], "%d-%m-%Y"),
+            'issue_date': datetime.strptime(row[6], "%d-%m-%Y")
+        }
     except (KeyError, ValueError) as e:
         raise DataIntegrityError(f"Data convertion error: {e}")
 
 
-def data_from_note(note, note_id = None):
+def data_from_note(note, note_id=None):
     is_add = len(note) == 6
     data = [note['title'], note['content'], note['status'].name]
     if is_add:
@@ -52,9 +50,20 @@ def load_notes_from_db(db_path):
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM notes;")
             rows = cursor.fetchall()
-        return notes_from_data(rows) if rows else rows
+        return [note_from_data(row) for row in rows] if rows else rows
     except (sqlite3.Error, DataIntegrityError) as e:
         raise DatabaseError(f"Loading notes from db failed: {e}")
+
+
+def get_note_by_id(note_id, db_path):
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM notes WHERE id = ?;", (note_id,))
+            row = cursor.fetchone()
+            return note_from_data(row) if row else None
+    except (sqlite3.Error, DataIntegrityError) as e:
+        raise DatabaseError(f"Getting note by id failed: {e}")
 
 
 def update_note_in_db(note_id, updates, db_path):
@@ -62,8 +71,8 @@ def update_note_in_db(note_id, updates, db_path):
         with sqlite3.connect(db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
-                """UPDATE notes SET title = ?, content = ?, status = ?, issue_date = ? WHERE id = ?;""",
-            data_from_note(updates, note_id))
+                "UPDATE notes SET title = ?, content = ?, status = ?, issue_date = ? WHERE id = ?;",
+                data_from_note(updates, note_id))
             conn.commit()
     except sqlite3.Error as e:
         conn.rollback()
@@ -90,7 +99,7 @@ def search_notes_by_keyword(key, db_path):
                 (f"%{key}%", f"%{key}%")
             )
             rows = cursor.fetchall()
-        return notes_from_data(rows) if rows else rows
+        return [note_from_data(row) for row in rows] if rows else rows
     except (sqlite3.Error, DataIntegrityError) as e:
         raise DatabaseError(f"Searching notes from db failed: {e}")
 
@@ -104,6 +113,6 @@ def filter_notes_by_status(status, db_path):
                 (status.name,)
             )
             rows = cursor.fetchall()
-        return notes_from_data(rows) if rows else rows
+        return [note_from_data(row) for row in rows] if rows else rows
     except (sqlite3.Error, DataIntegrityError) as e:
         raise DatabaseError(f"Filtering notes by status from db failed: {e}")

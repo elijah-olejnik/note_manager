@@ -19,7 +19,7 @@ class Status(Enum):
     POSTPONED = 3
 
 
-# I think the data class would be better and more extendable
+# I think the model class would be better and more extendable
 # but the dictionary functionality remained the same
 @dataclasses.dataclass
 class Note:

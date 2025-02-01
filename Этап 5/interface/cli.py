@@ -2,7 +2,7 @@ from curses import wrapper
 from datetime import datetime
 import colorama
 from colorama import Fore, Style
-from data import NoteManager, Note
+from model import NoteManager, Note
 from .femto import femto
 from resources import strings
 from utils import NoteStatus, InputType, str_to_date, date_to_str, generate_id, input_to_enum_value
@@ -12,7 +12,7 @@ class NoteManagerCLI:
     """The class NoteManagerCLI represents an interface to work with
     the NoteManager class (a model Presenter) and handles user interaction
     with the terminal (the View), providing the text-based menus and
-    displaying user-readable data.
+    displaying user-readable model.
     """
     def __init__(self):
         self._note_manager = NoteManager()

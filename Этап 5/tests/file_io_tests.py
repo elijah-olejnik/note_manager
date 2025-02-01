@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import mock_open, patch
 from datetime import datetime
 from uuid import UUID
-from data import import_from_yaml, import_from_json, export_to_yaml, export_to_json
+from model import import_from_yaml, import_from_json, export_to_yaml, export_to_json
 from utils import FileIOError, NoteStatus
 
 

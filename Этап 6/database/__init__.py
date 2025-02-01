@@ -1,2 +1,2 @@
-from .setup_database import setup_db
+from .setup_database import *
 from .notes_operations import *
