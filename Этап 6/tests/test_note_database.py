@@ -22,7 +22,7 @@ class TestNoteDatabase(unittest.TestCase):
     def test_db_save_load_note(self):
         save_note_to_db(self.test_note, self.dbpath)
         loaded_note = load_notes_from_db(self.dbpath)[0]
-        del loaded_note['id_']
+        del loaded_note['id']
         self.assertEqual(self.test_note, loaded_note)
 
     @patch('sqlite3.connect')
