@@ -37,7 +37,7 @@ Update menu
 def user_confirmation():
     """The function handles 'are you sure? yes/no routines.'"""
     while True:
-        user_input = input("Are you sure? [Y] | [N]").strip().lower()
+        user_input = input("Are you sure? [Y] | [N]: ").strip().lower()
         if user_input == 'y':
             return True
         elif user_input == 'n':
@@ -147,6 +147,8 @@ def main():
                     print("\nCurrent notes:\n")
                     print(load_notes_from_db(db_path))
                     note_id = get_value_from_console(InputType.INT, "Enter note ID to delete: ")
+                    if not user_confirmation():
+                        continue
                     delete_note_from_db(note_id, db_path)
                     print("\nNote deleted\n")
                 case '5':
