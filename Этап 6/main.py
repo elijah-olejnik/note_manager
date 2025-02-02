@@ -10,7 +10,8 @@ Main menu
 [3] Update
 [4] Delete
 [5] Search
-[6] Quit
+[6] Filter
+[7] Quit
 """
 
 status_menu = """
@@ -149,8 +150,14 @@ def main():
                     delete_note_from_db(note_id, db_path)
                     print("\nNote deleted\n")
                 case '5':
-                    pass
+                    keyword = get_value_from_console(InputType.STR, "Enter a keyword: ")
+                    print("\nNotes found:\n")
+                    print(search_notes_by_keyword(keyword, db_path))
                 case '6':
+                    status = menu(status_menu, True)
+                    print('\n', status.name, "notes:\n")
+                    print(filter_notes_by_status(status, db_path))
+                case '7':
                     sys.exit(0)
     except DatabaseError as e:
         print(e)
