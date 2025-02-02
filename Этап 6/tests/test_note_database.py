@@ -73,6 +73,26 @@ class TestNoteDatabase(unittest.TestCase):
         mock_cursor.execute.assert_called_once_with("DELETE FROM notes WHERE id = ?;", (1,))
         mock_conn.commit.assert_called_once()
 
+    @patch('sqlite3.connect')
+    def test_delete_note_sqlite_error(self, mock_connect):
+        mock_conn = MagicMock()
+        mock_connect.return_value.__enter__.return_value = mock_conn
+        mock_conn.cursor.side_effect = sqlite3.Error("Some SQLite error")
+        with self.assertRaises(DatabaseError) as context:
+            delete_note_from_db(note_id=1, db_path='fake_path.db')
+        mock_conn.rollback.assert_called_once()
+        self.assertIn("Note deletion from db failed", str(context.exception))
+
+    @patch('sqlite3.connect')
+    def test_delete_note_rollback_on_error(self, mock_connect):
+        mock_conn = MagicMock()
+        mock_connect.return_value.__enter__.return_value = mock_conn
+        mock_cursor = mock_conn.cursor.return_value
+        mock_cursor.execute.side_effect = sqlite3.Error("Execution error")
+        with self.assertRaises(DatabaseError):
+            delete_note_from_db(note_id=1, db_path='fake_path.db')
+        mock_conn.rollback.assert_called_once()
+
 
 if __name__ == '__main__':
     unittest.main()
